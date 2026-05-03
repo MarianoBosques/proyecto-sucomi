@@ -1,0 +1,649 @@
+/* Estilos generales del body y header (ajustados para el menú de usuario) */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background-color: var(--body-bg-color, #2e2e2e);
+    color: var(--text-color, #f0f0f0);
+    padding-bottom: 80px; /* Ajusta este valor si la altura de los botones cambia */
+}
+
+#main-header {
+    background-color: var(--header-bg-color, #ff8c00);
+    color: var(--text-color, #f0f0f0);
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.settings-panel {
+    position: fixed;
+    top: 0;
+    right: -300px;
+    width: 300px;
+    height: 100%;
+    background-color: #333;
+    color: #f0f0f0;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
+    transition: right 0.3s ease-in-out;
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.settings-panel.open {
+    right: 0;
+}
+
+.settings-panel h2 {
+    margin-top: 0;
+    color: #ff8c00;
+    border-bottom: 1px solid #555;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.settings-panel label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.settings-panel input[type="color"] {
+    width: 100%;
+    height: 40px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 2px;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.settings-panel input[type="text"] {
+    width: calc(100% - 10px);
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #444;
+    color: #f0f0f0;
+}
+
+.settings-panel .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.8em;
+    color: #aaa;
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+
+.settings-panel .close-btn:hover {
+    color: #fff;
+}
+
+.color-group {
+    margin-bottom: 25px;
+}
+
+/* This is the key styling for the "Ajustes" button and now "Agregar Empleado" */
+.button {
+    display: inline-block;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+    border: none; 
+    color: white; 
+}
+
+.button.settings-toggle-button {
+    background-color: #6c757d;
+}
+.button.settings-toggle-button:hover {
+    background-color: #3d4347;
+}
+
+.button:not(.settings-toggle-button) {
+    background-color: #007bff; /* Blue for other navigation buttons */
+}
+.button:not(.settings-toggle-button):hover {
+    background-color: #0056b3;
+}
+
+.button.cheff {
+    background-color: #ffc107; /* Yellow for Cheff button */
+    color: #333; /* Este color se mantiene si quieres que los botones "Cheff" sean siempre oscuros */
+}
+.button.cheff:hover {
+    background-color: #e0a800;
+}
+ 
+/* Nuevo estilo para el botón "Control" */
+.button.control {
+    background-color: #17a2b8; /* Un color distintivo, como turquesa */
+    color: white;
+}
+.button.control:hover {
+    background-color: #138496;
+}
+
+/* Estilos para el botón de subir logo y vista previa */
+.button.logo-upload-btn {
+    background-color: #007bff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.preview-container {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.logo-preview-img {
+    max-width: 100%;
+    max-height: 120px;
+    border-radius: 8px;
+    border: 2px solid #555;
+    display: none;
+    margin: 0 auto;
+}
+
+/* FIN Estilos del Panel de Ajustes */
+
+/* INICIO NUEVOS ESTILOS PARA EL CONTENIDO DEL MENÚ EN ADMIN */
+main {
+    padding: 20px;
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 80%;
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+main h2 {
+    margin-bottom: 20px;
+}
+
+.menu-controls {
+    width: 85%;
+    max-width: 500px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    text-align: left;
+}
+
+.menu-controls .form-group {
+    margin-bottom: 15px;
+}
+
+.menu-controls label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="number"],
+textarea {
+    width: calc(100% - 16px);
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: var(--input-bg-color, #555);
+    color: var(--input-text-color, #f0f0f0);
+    box-sizing: border-box;
+}
+
+.menu-controls button.add-item-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+}
+.menu-controls button.add-item-btn:hover {
+    background-color: #218838;
+}
+
+.menu-list-container {
+    width: 100%;
+    max-width: 600px;
+}
+
+.menu-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 0;
+}
+
+.menu-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid #666;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+
+.menu-section-header {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 8px 10px;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    border-radius: 4px;
+    color: #ff8c00;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+/* --- Estilos para el Autocomplete de Categorías --- */
+.category-input-container {
+    position: relative; /* Necesario para posicionar la lista absoluta */
+}
+
+.custom-dropdown-list {
+    display: none; /* Oculto por defecto */
+    position: absolute;
+    top: 100%; /* Justo debajo del input */
+    left: 0;
+    width: calc(100% - 16px); /* Mismo ancho calculado que el input */
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #444; /* Fondo oscuro igual al input */
+    border: 1px solid #555;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    z-index: 1000;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.custom-dropdown-list li {
+    padding: 10px;
+    cursor: pointer;
+    color: #f0f0f0;
+    border-bottom: 1px solid #555;
+}
+
+.custom-dropdown-list li:hover {
+    background-color: #ff8c00; /* Color de énfasis al pasar el mouse */
+    color: white;
+}
+
+.menu-item .item-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-grow: 1;
+}
+
+.menu-item .item-name {
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.menu-item .item-price {
+    font-size: 0.9em;
+}
+ 
+.menu-item input[type="number"].edit-price-input {
+    width: 80px;
+    padding: 4px;
+    margin-left: 10px;
+    margin-right: 10px;
+    text-align: right;
+    background-color: var(--input-bg-color, #666);
+    color: var(--input-text-color, #f0f0f0);
+    border: 1px solid #777;
+    border-radius: 4px;
+}
+
+.menu-item button.delete-item-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.menu-item button.delete-item-btn:hover {
+    background-color: #c82333;
+}
+
+.navigation-buttons {
+    /* --- CAMBIOS PARA LA BARRA DE BOTONES FIJA --- */
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--body-bg-color, #2e2e2e); /* Fondo para que no sea transparente */
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3); /* Sombra superior para dar profundidad */
+    padding: 15px 0; /* Espaciado vertical */
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    z-index: 900; /* Asegura que esté por encima del contenido pero debajo de los paneles */
+}
+
+
+/* --- ESTILOS PARA EL MENÚ DE USUARIO (COPIADOS DE principal.css) --- */
+.header-content {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    text-align: left; /* Título a la izquierda */
+}
+
+.header-content img{
+    height: 50px;
+    width: auto;
+    margin-right: 15px;
+    display: block;
+}
+
+.restaurant-logo {
+    height: 45px;
+    width: auto;
+    margin-right: 15px;
+    border-radius: 4px;
+}
+
+#main-header h1 {
+    margin: 0;
+    font-size: 2em;
+    line-height: 1;
+}
+
+.user-menu {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.user-icon {
+    font-size: 2.5em;
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.user-icon:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.user-submenu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background-color: #34495e;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    min-width: 250px;
+    padding: 15px;
+    z-index: 100;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.user-submenu.show {
+    display: block;
+}
+
+.user-info {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;
+}
+
+.user-info p {
+    margin: 5px 0;
+    font-size: 0.95em;
+    word-wrap: break-word;
+}
+
+.user-info strong {
+    font-size: 1.1em;
+    color: #ffb347;
+}
+
+.submenu-button {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #ecf0f1;
+    padding: 10px 10px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1em;
+    border-radius: 5px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.submenu-button i {
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+
+.submenu-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffb347;
+}
+
+/* --- ESTILOS PARA EL DIÁLOGO DE CONFIRMACIÓN (COPIADOS DE principal.css) --- */
+.confirm-dialog-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 1001; /* Por encima del panel de ajustes */
+    animation: fadeIn 0.3s ease;
+}
+
+.confirm-dialog {
+    background-color: #34495e;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    color: #ecf0f1;
+    min-width: 300px;
+    max-width: 90%;
+    animation: popIn 0.3s ease-out;
+}
+
+.confirm-dialog p {
+    margin-bottom: 25px;
+    font-size: 1.2em;
+}
+
+.confirm-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.confirm-buttons button {
+    background-color: #ff8c00;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+/* --- Estilos para el Modal Personalizado de Alerta --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.modal-content {
+    background-color: #3a3a3a;
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: #ff8c00;
+    font-size: 1.5em;
+    margin-bottom: 15px;
+}
+
+.modal-content p {
+    color: #f0f0f0;
+    font-size: 1.1em;
+    margin-bottom: 25px;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+}
+
+.modal-btn {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1em;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.modal-btn-confirm {
+    background-color: #28a745;
+    color: white;
+}
+.modal-btn-confirm:hover {
+    background-color: #218838;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+/* --- RESPONSIVIDAD (AL FINAL PARA ASEGURAR PRIORIDAD) --- */
+@media (max-width: 768px) {
+    #main-header {
+        padding: 10px 15px;
+    }
+
+    .header-content {
+        min-width: 0; /* Permite que el flex-item se encoja correctamente */
+    }
+
+    .header-content img, .restaurant-logo {
+        height: 30px;
+        margin-right: 8px;
+        flex-shrink: 0;
+    }
+
+    #main-header h1 {
+        font-size: 1.1em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-shrink: 1;
+    }
+
+    .user-icon {
+        font-size: 1.8em;
+        padding: 5px;
+        flex-shrink: 0;
+    }
+
+    .settings-panel {
+        width: 100%; 
+        right: -100%;
+    }
+
+    .settings-panel.open {
+        right: 0;
+    }
+
+    main {
+        width: 95%;
+        margin: 10px auto;
+        padding: 10px;
+    }
+
+    .navigation-buttons {
+        gap: 10px;
+    }
+    
+    .button {
+        width: 100%;
+        text-align: center;
+    }
+
+    .menu-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .menu-item input[type="number"].edit-price-input {
+        width: 100%;
+        margin: 10px 0;
+    }
+}

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Mesero - SUCOMI</title>
+    <!-- Añadido Font Awesome para los iconos -->
+    <link rel="shortcut icon" href="assets/images/IconoSucomiWeb.png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../css/mesero.css">
+
+</head>
+<body>
+    <header id="main-header">
+        <div class="header-content">
+            <img src="../assets/images/LogoSucomi1.png" alt="Logo de SUCOMI" class="header-logo">
+            <img id="restaurant-logo" class="restaurant-logo" style="display: none;">
+            <h1 id="header-text">SUCOMI</h1>
+        </div>
+        <div class="user-menu" id="userMenu">
+            <i class="fas fa-user-circle user-icon" id="userIcon"></i>
+            <div class="user-submenu" id="userSubmenu">
+                <div class="user-info">
+                    <p>¡Hola, <strong><span id="userName">Cargando...</span></strong>!</p>
+                    <p><span id="userEmail">Cargando...</span></p>
+                </div>
+                <button class="submenu-button" id="configButton">
+                    <i class="fas fa-cog"></i> Configuración
+                </button>
+                <button class="submenu-button" id="logoutButton">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="global-menu-products-container">
+        <h3>Menú de Productos</h3>
+        <div id="menuProductsGrid" class="menu-products-grid">
+        </div>
+    </div>
+
+    <div class="global-client-controls">
+        <select id="clientSelector">
+            <option value="">Agrega una mesa</option>
+            </select>
+        <button id="addClientBtn" class="add-client-btn">Agregar Cliente</button>
+        <button id="deleteClientBtn" class="delete-client-btn">Eliminar Cliente</button>
+    </div>
+
+    <input type="text" id="clientNameInput" class="global-client-name-input" placeholder="Nombre del Cliente" readonly>
+
+    <textarea id="orderTextArea" placeholder="El pedido aparecerá aquí..."></textarea>
+    
+    <div class="order-total">
+        Total: $<span id="orderTotal">0.00</span>
+    </div>
+
+    <div class="order-actions">
+        <button id="clearOrderBtn" class="clear-all-data-btn">Limpiar Pedido</button>
+        <button id="sendOrderBtn" class="send-order-btn">Enviar a Cocina</button>
+    </div>
+
+
+    <main>
+        <h2>Historial de Órdenes Enviadas</h2>
+
+        <div class="sent-orders-history">
+            <div id="sentOrdersList">
+                <p class="no-sent-orders-message">No hay órdenes enviadas aún.</p>
+            </div>
+        </div>
+        <div class="global-sales-summary">
+            <h3>Total Global de Ventas</h3>
+            <p>$<span id="globalSalesTotal">0.00</span></p>
+        </div>
+
+    </main>
+
+    <div id="settingsPanel" class="settings-panel">
+        <button class="close-btn" id="closeSettingsPanel">&times;</button>
+        <h2>Ajustes de Apariencia</h2>
+
+        <div class="color-group">
+            <label for="headerTextInput">Texto del Encabezado:</label>
+            <input type="text" id="headerTextInput" value="SUCOMI">
+        </div>
+
+        <p style="font-size:0.8em; color:#bbb;">
+            * Los cambios se aplican a todas las páginas de esta sesión.
+        </p>
+
+        <button id="clearAllLocalStorageBtn" class="clear-all-storage-btn" style="display: none;">
+            Eliminar Todos los Datos (LocalStorage)
+        </button>
+    </div>
+
+    <!-- 💡 NUEVO: Estructura del Modal Personalizado -->
+    <div id="customModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3 id="modalTitle">Título del Modal</h3>
+            <p id="modalMessage">Este es el mensaje del modal.</p>
+            <input type="text" id="modalInput" style="display: none;" placeholder="Escribe aquí...">
+            <div class="modal-buttons">
+                <button id="modalBtnConfirm" class="modal-btn modal-btn-confirm">Confirmar</button>
+                <button id="modalBtnCancel" class="modal-btn modal-btn-cancel">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diálogo de confirmación para cerrar sesión -->
+    <div class="confirm-dialog-overlay" id="confirmLogoutDialog">
+        <div class="confirm-dialog">
+            <p>¿Deseas salir?</p>
+            <div class="confirm-buttons">
+                <button id="confirmLogoutYes">Sí</button>
+                <button id="confirmLogoutNo">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../javascript/mesero.js"></script>
+</body>
+</html>

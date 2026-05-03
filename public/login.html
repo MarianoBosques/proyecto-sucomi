@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://kit.fontawesome.com/64d58efce2.js" crossorigin="anonymous"></script>
+  <link rel="shortcut icon" href="assets/images/IconoSucomiWeb.png" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <title>Sucomi</title>
+  <link rel="stylesheet" href="css/login.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="forms-container">
+            <div class="signin-signup">
+                <form action="/login" class="sign-in-form">
+                    <h2 class="tittle">Iniciar Sesion</h2>
+                    <div class="input-field">
+                        <i class="fas fa-user"></i>
+                        <input type="email" placeholder="Correo Electronico" autocomplete="email">
+                    </div>
+                    <div class="input-field">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" placeholder="Contraseña" id="id_password_login">
+                        <i class="fas fa-eye" id="id_toggle_login" style="cursor: pointer"></i>
+                    </div>
+                    <input type="submit" value="Entrar" class="btn solid">
+                    <a href="javascript:void(0);" class="restauration terms-link-trigger">Una vez que ingresas aceptas los terminos y condiciones</a>
+                    <!--<a href="pages/restContrasenia.html" class="restauration">¿Olvidaste tu Contraseña?</a>-->
+                </form>
+
+                <form action="/register" class="sign-up-form">
+                    <h2 class="tittle">Registrarse</h2>
+                    <div class="input-field">
+                        <i class="fas fa-user"></i>
+                        <input type="text" placeholder="Usuario">
+                    </div>
+                    <div class="input-field">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" placeholder="Correo Electronico" autocomplete="email">
+                    </div>
+                    <div class="input-field">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" placeholder="Contraseña" id="id_password_register">
+                        <i class="fas fa-eye" id="id_toggle_register" style="cursor: pointer"></i>
+                    </div>
+                    <input type="submit" value="Entrar" class="btn solid">
+                    <a href="javascript:void(0);" class="restauration terms-link-trigger">Una vez que ingresas aceptas los terminos y condiciones</a>
+                </form>
+            </div>
+        </div>
+        <div class="panels-container">
+
+            <div class="panel left-panel">
+                <div class="content">
+                    <!--<h1>Sucomi</h1>-->
+                    <img src="assets/images/LogoSucomi1.png" alt="Sucomi Logo" class="logo-img">
+                    <p>Ordena, cocina y controla desde una aplicación</p>
+                    <p>¿Eres nuevo aquí? Crea una cuenta aquí.</p>
+                    <button class="btn transparent" id="sign-up-btn">Registrarse</button>
+                </div>
+                <img src="assets/svgs/enter_password.svg" class="image" alt="">
+            </div>
+
+            <div class="panel right-panel">
+                <div class="content">
+                    <!--<h1>Sucomi</h1>-->
+                    <img src="assets/images/LogoSucomi1.png" alt="Sucomi Logo" class="logo-img">
+                    <p>Ordena, cocina y controla desde una aplicación</p>
+                    <p>¿Ya tienes una cuenta? Da clic aquí:</p>
+                    <button class="btn transparent" id="sign-in-btn">Iniciar sesión</button>
+                </div>
+                <img src="assets/svgs/authentication.svg" class="image" alt="">
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Términos y Condiciones -->
+    <div id="termsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Términos y Condiciones de Sucomi</h2>
+            <p>Al registrarte y utilizar la aplicación Sucomi, aceptas los siguientes términos y condiciones. Por favor, léelos atentamente.</p>
+            <ol>
+                <li><strong>Aceptación de los Términos:</strong> Al acceder o utilizar nuestra aplicación, usted acepta estar legalmente obligado por los presentes Términos y Condiciones de Uso. Si no está de acuerdo con estos Términos, no utilice la Aplicación.</li>
+                <li><strong>Descripción del Servicio:</strong> La Aplicación ofrece la posible de gestionar a un nivel básico un restaurante  El acceso a ciertas funciones requiere el registro de una cuenta.</li>
+                <li><strong>Registro y Cuentas de Usuario:</strong> Para utilizar la Aplicación, deberá proporcionar una dirección de correo electrónico y una contraseña.</li>
+                <p>Usted es responsable de mantener la confidencialidad de su contraseña.</p>
+                <p> Usted es el único responsable de todas las actividades que ocurran bajo su cuenta.</p>
+                <li><strong>Recopilación y Uso de Datos:</strong> La Aplicación está diseñada con un enfoque en la privacidad y la seguridad de los datos.</li>
+                <p>Únicamente guardamos tu correo electrónico y tu contraseña protegida (cifrada o con hash). Esto es necesario para que puedas crear tu cuenta, iniciar sesión y usar la aplicación.</p>
+                <p> Nuestra aplicación no utiliza cookies ni ninguna tecnología que rastree tu actividad.</p>
+                <p> No pedimos acceso a funciones de tu dispositivo ni registramos tu ubicación u otros datos personales. Solo usaremos la información necesaria para que puedas entrar a tu cuenta y aprovechar la aplicación. No pedimos nada que no sea útil para ese propósito.</p>
+                <p> Tomaremos acciones para proteger tus datos y evitar accesos no autorizados.<strong></strong> </p>
+                <li><strong>Limitación de responsabilidad</strong> La Aplicación se proporciona "tal cual" y "según disponibilidad", sin garantías de ningún tipo, expresas o implícitas.</li>
+                <li><strong>Cambios a los términos:</strong> Nos reservamos el derecho de modificar estos Términos en cualquier momento. Le notificaremos cualquier cambio publicando los nuevos Términos en esta página. Su uso continuado de la Aplicación después de la publicación de los Términos modificados constituye su aceptación de dichos cambios.</li>
+                
+                
+            </ol>
+        </div>
+    </div>
+    
+    <!-- Modal de Error Personalizado -->
+    <div id="customErrorModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3 id="errorModalTitle">Aviso</h3>
+            <p id="errorMessageText">Mensaje de error.</p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-confirm close-modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./javascript/auth/firebaseConfig.js?v=1.2"></script>
+    <script type="module" src="./javascript/auth/authFunctions.js?v=1.2"></script>
+    <script type="module" src="./javascript/login.js?v=1.2"></script>
+</body>
+</html>

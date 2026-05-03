@@ -1,0 +1,403 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(-45deg, #414141, #000000);
+    color: #ecf0f1;
+    overflow: hidden;
+}
+header {
+    background: linear-gradient(-45deg, #d26301, #ff963a);
+    color: white;
+    padding: 15px 40px; 
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    width: 100%;
+    box-shadow:
+        0 6px 0 #cc7000,
+        0 8px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 40px; 
+    position: relative;
+    z-index: 10;
+    border-bottom: 5px solid #cc7000;
+}
+
+header:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+}
+
+.header-content {
+    flex-grow: 1;
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+    font-size: 3.5em;
+    letter-spacing: 4px;
+    text-shadow:
+        2px 2px 4px rgba(0, 0, 0, 0.4),
+        0 0 10px rgba(255, 255, 255, 0.2);
+    font-weight: 700;
+    -webkit-text-stroke: 1px rgba(0, 0, 0, 0.1);
+}
+
+.container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Estilos Base para Botones (Efecto 3D y Hover) */
+.button {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    padding: 20px 40px;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 1.4em;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow:
+        0 6px 0 0 rgba(0, 0, 0, 0.2),
+        0 0 15px rgba(0, 0, 0, 0.5);
+    border-bottom: 4px solid rgba(0, 0, 0, 0.3);
+    transition:
+        background-color 0.3s ease,
+        transform 0.2s ease,
+        box-shadow 0.3s ease,
+        border-bottom 0.2s ease,
+        top 0.2s ease;
+    top: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+.button:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.15);
+    transform: skewX(-20deg);
+    transition: all 0.7s ease;
+}
+
+.button:hover {
+    background-color: #2980b9;
+    transform: translateY(2px);
+    box-shadow:
+        0 2px 0 0 rgba(0, 0, 0, 0.2),
+        0 0 20px rgba(0, 0, 0, 0.7);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.3);
+    top: 2px;
+}
+
+.button:hover:before {
+    left: 100%;
+}
+
+/* Estilos específicos para cada botón con un esquema de color más coherente */
+.button.administrador {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    box-shadow:
+        0 6px 0 0 #922b21,
+        0 0 15px rgba(0, 0, 0, 0.5);
+    border-bottom: 4px solid #922b21;
+}
+
+.button.administrador:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    box-shadow:
+        0 2px 0 0 #922b21,
+        0 0 20px rgba(0, 0, 0, 0.7);
+    border-bottom: 2px solid #922b21;
+}
+
+.button.cheff {
+    background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+    box-shadow:
+        0 6px 0 0 #c2880d,
+        0 0 15px rgba(0, 0, 0, 0.5);
+    border-bottom: 4px solid #c2880d;
+}
+.button.cheff:hover {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    box-shadow:
+        0 2px 0 0 #c2880d,
+        0 0 20px rgba(0, 0, 0, 0.7);
+    border-bottom: 2px solid #c2880d;
+}
+
+.button.mesero {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    box-shadow:
+        0 6px 0 0 #1f8b4c,
+        0 0 15px rgba(0, 0, 0, 0.5);
+    border-bottom: 4px solid #1f8b4c;
+}
+
+.button.mesero:hover {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    box-shadow:
+        0 2px 0 0 #1f8b4c,
+        0 0 20px rgba(0, 0, 0, 0.7);
+    border-bottom: 2px solid #1f8b4c;
+}
+
+.user-menu {
+    position: relative; 
+    flex-shrink: 0; 
+}
+
+.user-icon {
+    font-size: 2.5em;
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.user-icon:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.user-submenu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px); 
+    right: 0; 
+    background-color: #34495e;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    min-width: 250px;
+    padding: 15px;
+    z-index: 100;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.user-submenu.show {
+    display: block;
+}
+
+.user-info {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;
+}
+
+.user-info p {
+    margin: 5px 0;
+    font-size: 0.95em;
+    word-wrap: break-word;
+}
+
+.user-info strong {
+    font-size: 1.1em;
+    color: #ffb347;
+}
+
+.submenu-button {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #ecf0f1;
+    padding: 10px 10px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1em;
+    border-radius: 5px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.submenu-button i {
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+
+.submenu-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffb347;
+}
+
+.confirm-dialog-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    animation: fadeIn 0.3s ease; 
+}
+
+.confirm-dialog {
+    background-color: #34495e;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    color: #ecf0f1;
+    min-width: 300px;
+    max-width: 90%;
+    animation: popIn 0.3s ease-out;
+}
+
+.confirm-dialog p {
+    margin-bottom: 25px;
+    font-size: 1.2em;
+}
+
+.confirm-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.confirm-buttons button {
+    background-color: #ff8c00;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.confirm-buttons button:hover {
+    background-color: #cc7000;
+    transform: translateY(-2px);
+}
+
+.confirm-buttons button:active {
+    transform: translateY(0);
+}
+
+/* Animaciones para botones */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Teléfonos (Vertical - La mayoría de smartphones) */
+@media (max-width: 767px) { 
+    header {
+        padding: 15px 20px;
+        margin-bottom: 30px;
+    }
+
+    h1 {
+        font-size: 3em;
+        letter-spacing: 3px;
+    }
+
+    .container {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .button {
+        width: 80%; 
+        max-width: 300px; 
+        padding: 18px 30px;
+        font-size: 1.2em;
+    }
+
+    .user-icon {
+        font-size: 2.2em;
+        padding: 8px;
+    }
+
+    .user-submenu {
+        top: calc(100% + 5px); 
+        min-width: 220px;
+    }
+
+    .confirm-dialog {
+        padding: 20px;
+        min-width: 280px;
+    }
+
+    .confirm-dialog p {
+        font-size: 1em;
+    }
+
+    .confirm-buttons button {
+        padding: 10px 20px;
+        font-size: 0.9em;
+    }
+}
+
+/* Teléfonos (Horizontal) / Tabletas Pequeñas */
+@media (min-width: 768px) and (max-width: 991px) {
+    header h1 {
+        font-size: 3.5em;
+    }
+
+    .container {
+        gap: 25px;
+    }
+
+    .button {
+        padding: 20px 35px;
+        font-size: 1.3em;
+        min-width: 220px;
+    }
+
+    .user-icon {
+        font-size: 2.3em;
+    }
+
+    .user-submenu {
+        min-width: 240px;
+    }
+}
+
+/* Tabletas y Laptops Pequeñas (Horizontal) */
+@media (min-width: 992px) and (max-width: 1199px) {
+    header h1 {
+        font-size: 4em;
+    }
+
+    .container {
+        gap: 30px;
+    }
+
+    .button {
+        padding: 22px 42px;
+        font-size: 1.45em;
+    }
+}

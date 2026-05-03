@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - SUCOMI</title>
+    <!-- Añadido Font Awesome para los iconos -->
+    <link rel="shortcut icon" href="assets/images/IconoSucomiWeb.png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../css/control.css">
+</head>
+<body>
+
+    <header id="main-header">
+        <div class="header-content">
+            <img src="../assets/images/LogoSucomi1.png" alt="Logo de SUCOMI" class="header-logo">
+            <img id="restaurant-logo" class="restaurant-logo" style="display: none;">
+            <h1 id="header-text">SUCOMI</h1>
+        </div>
+        <div class="user-menu" id="userMenu">
+            <i class="fas fa-user-circle user-icon" id="userIcon"></i>
+            <div class="user-submenu" id="userSubmenu">
+                <div class="user-info">
+                    <p>¡Hola, <strong><span id="userName">Cargando...</span></strong>!</p>
+                    <p><span id="userEmail">Cargando...</span></p>
+                </div>
+                <button class="submenu-button" id="configButton">
+                    <i class="fas fa-cog"></i> Configuración
+                </button>
+                <button class="submenu-button" id="logoutButton">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="main-header-controls">
+            <h2>Historial de Órdenes</h2>
+            <a href="admin.html" class="button back-button">
+                <i class="fas fa-arrow-left"></i> Volver al Menu de Administración
+            </a>
+        </div>
+        <h2>Historial General de Órdenes</h2>
+        <!-- 💡 CONTENEDOR DE ACCIONES PRINCIPALES MODIFICADO -->
+        <div class="main-actions-container">
+            <a href="ordenes.html" class="button view-reports-button">
+                <i class="fas fa-book"></i> Ver Reportes Guardados
+            </a>
+            <button id="archiveOrdersBtn" class="button archive-all-button" style="display: none;">
+                <i class="fas fa-archive"></i> Archivar y Limpiar Órdenes
+            </button>
+            <button id="printAllOrdersBtn" class="button print-all-button">
+                <i class="fas fa-print"></i> Imprimir Todo
+            </button>
+        </div>
+
+        <div id="controlOrdersList" class="control-orders-container">
+            <p class="no-orders-message">No hay órdenes registradas aún.</p>
+        </div>
+    </main>
+
+    <div id="generalTotalContainer" class="general-total-container">
+        <h3>Total General de Órdenes Pagadas</h3>
+        <p id="totalPaidAmount">$0.00</p>
+    </div>
+
+    <!-- 💡 NUEVO: Estructura del Modal Personalizado -->
+    <div id="customModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3 id="modalTitle">Título del Modal</h3>
+            <p id="modalMessage">Este es el mensaje del modal.</p>
+            <!-- 💡 NUEVO: Selector para reportes existentes -->
+            <select id="modalSelect" class="modal-select" style="display: none;"></select>
+            <input type="text" id="modalInput" style="display: none;" placeholder="Escribe aquí...">
+            <div class="modal-buttons">
+                <button id="modalBtnConfirm" class="modal-btn modal-btn-confirm">Confirmar</button>
+                <button id="modalBtnCancel" class="modal-btn modal-btn-cancel">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diálogo de confirmación para cerrar sesión -->
+    <div class="confirm-dialog-overlay" id="confirmLogoutDialog">
+        <div class="confirm-dialog">
+            <p>¿Deseas salir?</p>
+            <div class="confirm-buttons">
+                <button id="confirmLogoutYes">Sí</button>
+                <button id="confirmLogoutNo">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../javascript/control.js"></script>
+</body>
+</html>

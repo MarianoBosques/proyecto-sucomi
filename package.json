@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "firebase": "^12.3.0",
+    "firebase-functions": "^4.9.0"
+  },
+  "devDependencies": {
+    "jest": "^30.0.3"
+  },
+  "overrides": {
+    "@firebase/util": "0.3.4"
+  }
+}

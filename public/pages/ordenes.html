@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Órdenes Archivadas - SUCOMI</title>
+    <link rel="shortcut icon" href="assets/images/IconoSucomiWeb.png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../css/ordenes.css">
+</head>
+<body>
+
+    <header id="main-header">
+        <div class="header-content">
+            <img src="../assets/images/LogoSucomi1.png" alt="Logo de SUCOMI" class="header-logo">
+            <img id="restaurant-logo" class="restaurant-logo" style="display: none;">
+            <h1 id="header-text">SUCOMI</h1>
+        </div>
+        <div class="user-menu" id="userMenu">
+            <i class="fas fa-user-circle user-icon" id="userIcon"></i>
+            <div class="user-submenu" id="userSubmenu">
+                <div class="user-info">
+                    <p>¡Hola, <strong><span id="userName">Cargando...</span></strong>!</p>
+                    <p><span id="userEmail">Cargando...</span></p>
+                </div>
+                <button class="submenu-button" id="logoutButton">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="main-header-controls">
+            <h2>Historial de Reportes Archivados</h2>
+            <a href="control.html" class="button back-button">
+                <i class="fas fa-arrow-left"></i> Volver al Control
+            </a>
+        </div>
+        
+        <div id="reportsContainer" class="reports-main-container">
+            <p class="no-reports-message">No hay reportes archivados aún.</p>
+        </div>
+    </main>
+
+    <!-- Diálogo de confirmación para cerrar sesión -->
+    <div class="confirm-dialog-overlay" id="confirmLogoutDialog">
+        <div class="confirm-dialog">
+            <p>¿Deseas salir?</p>
+            <div class="confirm-buttons">
+                <button id="confirmLogoutYes">Sí</button>
+                <button id="confirmLogoutNo">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../javascript/ordenes.js"></script>
+
+</body>
+</html>

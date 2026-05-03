@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administrador - SUCOMI</title>
+    <!-- Añadido Font Awesome para los iconos del menú de usuario -->
+    <link rel="shortcut icon" href="assets/images/IconoSucomiWeb.png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">    
+</head>
+<body>
+
+    <header id="main-header">
+        <div class="header-content">
+            <img src="../assets/images/LogoSucomi1.png" alt="Logo de SUCOMI" class="header-logo">
+            <img id="restaurant-logo" class="restaurant-logo" style="display: none;">
+            <h1 id="header-text">SUCOMI</h1>
+        </div>
+        <div class="user-menu" id="userMenu">
+            <i class="fas fa-user-circle user-icon" id="userIcon"></i>
+            <div class="user-submenu" id="userSubmenu">
+                <div class="user-info">
+                    <p>¡Hola, <strong><span id="userName">Cargando...</span></strong>!</p>
+                    <p><span id="userEmail">Cargando...</span></p>
+                </div>
+                <button class="submenu-button" id="configButton">
+                    <i class="fas fa-cog"></i> Configuración
+                </button>
+                <button class="submenu-button" id="logoutButton">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <h2>Administrar Menú de Productos</h2>
+
+        <div class="menu-controls">
+            <h3>Agregar Nuevo Producto</h3>
+            <div class="form-group">
+                <label for="productNameInput">Nombre del Producto:</label>
+                <input type="text" id="productNameInput" placeholder="Ej. Hamburguesa Clásica">
+            </div>
+            <div class="form-group category-input-container">
+                <label for="productCategoryInput">Categoría / Sección:</label>
+                <input type="text" id="productCategoryInput" placeholder="Ej. Bebidas, Postres, Ensaladas" autocomplete="off">
+                <ul id="customCategoryList" class="custom-dropdown-list"></ul>
+            </div>
+            <div class="form-group">
+                <label for="productPriceInput">Precio ($):</label>
+                <input type="number" id="productPriceInput" min="0.01" step="0.01" value="0.00">
+            </div>
+            <button id="addProductBtn" class="add-item-btn">Agregar Producto al Menú</button>
+        </div>
+
+        <div class="menu-list-container">
+            <h3>Productos Actuales del Menú</h3>
+            <ul id="menuList" class="menu-list">
+            </ul>
+            <p style="font-size:0.8em; color:#bbb; text-align: center; margin-top: 20px;">
+                * Puedes hacer clic en el precio para editarlo y presionar Enter o hacer clic fuera para guardar.
+            </p>
+        </div>
+    </main>
+    <div class="navigation-buttons">
+        <a href="crearUsuarios.html" class="button">Agregar Empleado</a>
+        <a href="control.html" class="button control">Control</a>
+        <button id="toggleSettingsPanel" class="button settings-toggle-button">Ajustes</button>
+        <a href="users.html" class="button users">Ver Usuarios</a>
+    </div>
+
+    <div id="settingsPanel" class="settings-panel">
+        <button class="close-btn" id="closeSettingsPanel">&times;</button>
+        <h2>Ajustes de Apariencia</h2>
+
+        <div class="color-group">
+            <label for="headerTextInput">Texto del Encabezado:</label>
+            <input type="text" id="headerTextInput" value="SUCOMI">
+        </div>
+
+        <div class="color-group">
+            <label for="logoInput">Logo del Restaurante:</label>
+            <label for="logoInput" class="button logo-upload-btn">
+                <i class="fas fa-image"></i> Seleccionar Imagen
+            </label>
+            <input type="file" id="logoInput" accept=".png,.jpg,.jpeg,.avif,.tiff" style="display: none;">
+            
+            <div class="preview-container">
+                <img id="logoPreview" class="logo-preview-img" alt="Vista previa">
+            </div>
+        </div>
+
+        <p style="font-size:0.8em; color:#bbb;">
+            * Los cambios se aplican a todas las páginas de esta sesión.
+        </p>
+    </div>
+
+    <!-- Diálogo de confirmación para cerrar sesión (copiado de principal.html) -->
+    <div class="confirm-dialog-overlay" id="confirmLogoutDialog">
+        <div class="confirm-dialog">
+            <p>¿Deseas salir?</p>
+            <div class="confirm-buttons">
+                <button id="confirmLogoutYes">Sí</button>
+                <button id="confirmLogoutNo">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Alerta Personalizado (Validación) -->
+    <div id="customAlertModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3 id="modalTitle">Aviso</h3>
+            <p id="modalMessage">Favor de llenar los campos que le solicita.</p>
+            <div class="modal-buttons">
+                <button id="modalBtnAccept" class="modal-btn modal-btn-confirm">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../javascript/admin.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper para verificar el rol del usuario autenticado
+    function hasRole(role) {
+      return request.auth.token.role == role;
+    }
+
+    // ===========================================
+    // Colección de Usuarios Raíz: 'users' (Administradores)
+    // ===========================================
+    match /users/{userId} {
+      // Un administrador puede leer y escribir en su propio documento.
+      // 💡 CORRECCIÓN: Un empleado también puede LEER el documento de su admin
+      // para obtener configuraciones globales como la apariencia.
+      // El `adminId` del empleado se obtiene de su token de autenticación.
+      // La creación es manejada por la Cloud Function 'assignUserRole'.
+      allow read: if (request.auth.uid == userId && hasRole('administrador')) || (request.auth.token.adminId == userId && (hasRole('mesero') || hasRole('chef')));
+      allow update: if request.auth.uid == userId && hasRole('administrador');
+      // Un administrador puede crear su propio documento (la CF lo hace en su nombre).
+      allow create: if request.auth.uid == userId;
+
+      // =======================================================
+      // SUBCOLECCIÓN DE EMPLEADOS
+      // =======================================================
+      match /empleados/{empleadoId} {
+          // El administrador puede realizar cualquier operación en su subcolección de empleados.
+          allow write: if hasRole('administrador') && request.auth.uid == userId;
+
+          // Un empleado (chef/mesero) solo puede leer su propio perfil.
+          // El administrador también puede leer los perfiles de sus empleados.
+          allow read: if (request.auth.uid == empleadoId && (hasRole('chef') || hasRole('mesero'))) || (request.auth.uid == userId && hasRole('administrador'));
+
+          // Un empleado solo puede actualizar su propio perfil.
+          allow update: if request.auth.uid == empleadoId && (hasRole('chef') || hasRole('mesero'));
+      }
+
+      // ===========================================
+      // Subcolección de Órdenes: 'users/{adminId}/orders'
+      // ===========================================
+      match /orders/{orderId} {
+        // 💡 CORRECCIÓN: Un mesero solo puede crear órdenes para SU administrador.
+        // Comparamos el `adminId` de su token con el `userId` de la ruta.
+        allow create: if hasRole('mesero') && request.auth.token.adminId == userId;
+        allow read: if hasRole('mesero') || hasRole('chef') || (hasRole('administrador') && request.auth.uid == userId);
+        allow update: if hasRole('chef') || (hasRole('administrador') && request.auth.uid == userId) || (hasRole('mesero') && request.resource.data.waiterId == request.auth.uid);
+        // 💡 CORRECCIÓN: Un mesero puede eliminar una orden si es el creador de la misma.
+        // Un administrador también puede eliminar cualquier orden de su restaurante.
+        allow delete: if (hasRole('administrador') && request.auth.uid == userId) ||
+                      (hasRole('mesero') && resource.data.waiterId == request.auth.uid);
+      }
+
+      // =======================================================
+      // SUBCOLECCIÓN DE MENÚ: 'users/{userId}/menuItems'
+      // =======================================================
+      // 💡 CORRECCIÓN: La regla se mueve DENTRO del bloque /users/{userId}
+      match /menuItems/{menuItemId} {
+          // El administrador puede leer y escribir en su propio menú.
+          allow write: if hasRole('administrador') && request.auth.uid == userId;
+          // Un empleado (mesero/chef) puede leer el menú de SU administrador.
+          allow read: if (hasRole('administrador') && request.auth.uid == userId) || (request.auth.token.adminId == userId && (hasRole('mesero') || hasRole('chef')));
+      }
+    }
+    
+    // =======================================================
+    // SUBCOLECCIÓN DE REPORTES: 'users/{adminId}/reports'
+    // =======================================================
+    // 💡 NUEVA REGLA: Permite a los administradores gestionar sus reportes.
+    // La escritura (create, update, delete) en la subcolección de órdenes
+    // dentro de un reporte es manejada por la Cloud Function 'archiveOrders'.
+    match /users/{adminId}/reports/{reportId} {
+      allow read, write: if hasRole('administrador') && request.auth.uid == adminId;
+
+      match /orders/{orderId} {
+        allow read: if hasRole('administrador') && request.auth.uid == adminId;
+      }
+    }
+
+    // ===========================================
+    // Otras colecciones
+    // ===========================================
+    match /reports/{reportId} {
+      allow read, write: if hasRole('administrador');
+    }
+  }
+}

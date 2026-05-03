@@ -1,0 +1,735 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background-color: var(--body-bg-color, #2e2e2e);
+    color: var(--text-color, #f0f0f0);
+}
+
+#main-header {
+    background-color: var(--header-bg-color, #ff8c00);
+    color: var(--text-color, #f0f0f0);
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    text-align: left; /* Título a la izquierda */
+}
+
+.header-content img{
+    height: 50px;
+    width: auto;
+    margin-right: 15px;
+    display: block;
+}
+
+.restaurant-logo {
+    height: 45px;
+    width: auto;
+    margin-right: 15px;
+    border-radius: 4px;
+}
+
+#main-header h1 {
+    margin: 0;
+    font-size: 2em;
+    line-height: 1;
+}
+
+/* Estilos generales del main */
+main {
+    padding: 20px;
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    min-height: 70vh;
+}
+
+.main-header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 10px;
+    margin-bottom: 25px;
+}
+
+main h2 {
+    color: #17a2b8;
+    font-size: 2.2em;
+    margin: 0;
+}
+
+.button.back-button {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1em;
+    transition: background-color 0.3s;
+}
+.button.back-button:hover {
+    background-color: #5a6268;
+}
+.button.back-button i {
+    margin-right: 8px;
+}
+
+
+.button.view-reports-button {
+    background-color: #d700df;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.button.view-reports-button:hover {
+    background-color: #a500a5;
+}
+
+.button.view-reports-button i {
+    margin-right: 8px;
+}
+
+
+/* Contenedor de órdenes para el Control - Usa CSS Grid para las "mesas" */
+.control-orders-container {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    max-height: 700px;
+    overflow-y: auto;
+    padding-right: 10px;
+    justify-content: center;
+    padding-bottom: 20px;
+}
+
+/* Estilo para cada "recuadro de mesa" en el panel de control */
+.order-card-control {
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    padding: 20px;
+    border: 2px solid #17a2b8;
+    position: relative;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    text-align: left;
+    transition: transform 0.2s ease-in-out, border-color 0.2s ease, background-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 250px;
+}
+
+/* Estilo para la nota marcada como pagada */
+.order-card-control.paid {
+    background-color: rgba(40, 167, 69, 0.5);
+    border-color: #28a745;
+}
+
+.order-card-control h4 {
+    margin-top: 0;
+    color: #ffc107;
+    font-size: 1.6em;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.order-card-control .waiter-name {
+    font-size: 1.1em;
+    color: #28a745;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.order-card-control pre {
+    white-space: pre-wrap;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1em;
+    color: #f0f0f0;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 12px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    max-height: 120px;
+    overflow-y: auto;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.order-card-control p {
+    margin: 5px 0;
+    color: #ddd;
+}
+
+.order-card-control .total-price {
+    font-weight: bold;
+    color: #007bff;
+    font-size: 1.4em;
+    text-align: right;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+.order-card-control .timestamp {
+    font-size: 0.8em;
+    color: #aaa;
+    text-align: right;
+    margin-top: 5px;
+}
+
+.no-orders-message {
+    color: #ccc;
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    font-size: 1.1em;
+    grid-column: 1 / -1;
+}
+
+/* Estilos para el nuevo botón "Eliminar Todo" */
+.clear-all-orders-button {
+    background-color: #dc3545;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-bottom: 20px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.clear-all-orders-button:hover {
+    background-color: #c82333;
+    transform: scale(1.02);
+}
+
+/* Estilos para los nuevos botones "Pagado" e "Imprimir" */
+.order-actions {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 15px;
+    gap: 10px;
+}
+
+.order-actions button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    flex-grow: 1;
+}
+
+.order-actions .paid-button {
+    background-color: #28a745;
+    color: white;
+}
+
+.order-actions .paid-button:hover {
+    background-color: #218838;
+    transform: scale(1.03);
+}
+
+.order-actions .print-button {
+    background-color: #007bff;
+    color: white;
+}
+
+.order-actions .print-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.03);
+}
+
+/* 💡 NUEVO: Estilo para el botón de guardar orden individual */
+.order-actions .save-button {
+    background-color: #17a2b8; /* Un color cian distintivo */
+    color: white;
+}
+
+.order-actions .save-button:hover {
+    background-color: #138496;
+    transform: scale(1.03);
+}
+
+/* 💡 NUEVO: Estilo para el botón de archivar todo con hover */
+.archive-all-button {
+    background-color: #ffc107;
+    color: #212529;
+    transition: background-color 0.3s, transform 0.2s;
+}
+.archive-all-button:hover {
+    background-color: #e0a800;
+    transform: scale(1.05);
+}
+
+/* 💡 NUEVO: Estilo para el botón de imprimir todo con hover */
+.print-all-button {
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.3s, transform 0.2s;
+}
+.print-all-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+/* Estilos para el total general */
+.general-total-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 30px auto 20px auto;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    border: 2px solid #ffc107;
+    text-align: center;
+}
+
+.general-total-container h3 {
+    color: #ffc107;
+    font-size: 1.8em;
+    margin-bottom: 10px;
+}
+
+.general-total-container p {
+    color: #fff;
+    font-size: 2.5em;
+    font-weight: bold;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(255, 193, 7, 0.6);
+}
+
+/*
+--- Media Queries para Responsividad ---
+*/
+
+/* Estilos para Tabletas (ancho de pantalla entre 601px y 1024px)
+*/
+@media (max-width: 1024px) {
+    main {
+        width: 95%;
+        padding: 15px;
+    }
+    
+    .control-orders-container {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+        padding-right: 5px;
+    }
+
+    .order-card-control {
+        min-height: 220px;
+        padding: 15px;
+    }
+    
+    .order-card-control h4 {
+        font-size: 1.4em;
+        margin-bottom: 10px;
+    }
+    
+    .order-card-control .waiter-name {
+        font-size: 1em;
+    }
+    
+    .order-card-control pre {
+        font-size: 0.9em;
+        padding: 10px;
+    }
+
+    .order-card-control .total-price {
+        font-size: 1.2em;
+    }
+    
+    .order-actions button {
+        padding: 6px 10px;
+        font-size: 0.85em;
+    }
+
+    /* 💡 NUEVO: Ajuste responsivo para los botones de acción principales en tabletas */
+    .main-actions-container .button {
+        padding: 8px 16px;
+        font-size: 0.95em;
+    }
+}
+
+/* Estilos para Teléfonos Móviles (ancho de pantalla hasta 600px)
+*/
+@media (max-width: 600px) {
+    #main-header {
+        padding: 10px 15px;
+    }
+
+    .header-content img {
+        height: 35px;
+        margin-right: 8px;
+    }
+
+    .restaurant-logo {
+        height: 35px;
+        margin-right: 8px;
+    }
+
+    #main-header h1 {
+        font-size: 1.3em;
+    }
+
+    .user-icon {
+        font-size: 1.8em;
+        padding: 6px;
+    }
+
+    main {
+        /* width: 100%; */
+        margin: 10px auto;
+        padding: 10px;
+    }
+    
+    main h2 {
+        font-size: 1.8em;
+        margin-bottom: 20px;
+        padding-bottom: 8px;
+    }
+    
+    .control-orders-container {
+        grid-template-columns: 1fr; /* Una sola columna para móviles */
+        gap: 15px;
+        max-height: 60vh;
+        padding-right: 0;
+    }
+    
+    .order-card-control {
+        min-height: auto;
+        padding: 15px;
+    }
+    
+    .order-card-control h4 {
+        font-size: 1.5em;
+    }
+    
+    .order-card-control .total-price {
+        font-size: 1.3em;
+    }
+    
+    .order-actions {
+        flex-direction: column; /* Apila los botones de acción */
+        gap: 8px;
+    }
+
+    .order-actions button {
+        padding: 10px;
+        font-size: 1em;
+    }
+
+    .general-total-container {
+        /* width: 100%; */
+        padding: 15px;
+        margin: 20px auto;
+    }
+    
+    .general-total-container h3 {
+        font-size: 1.5em;
+    }
+
+    /* 💡 NUEVO: Ajuste responsivo para los botones de acción principales en móviles */
+    .main-actions-container {
+        flex-direction: column; /* Apila los botones verticalmente */
+        align-items: stretch; /* Estira los botones para que ocupen el ancho */
+        width: 90%;
+    }
+
+    .general-total-container p {
+        font-size: 2em;
+    }
+}
+
+/* 💡 NUEVO: Estilos para el Modal Personalizado */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes scaleOut {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(0.9); opacity: 0; }
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.modal-overlay.closing {
+    animation: fadeOut 0.3s ease-in forwards;
+}
+
+.modal-content {
+    background-color: #3a3a3a;
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.modal-content.closing {
+    animation: scaleOut 0.3s ease-in forwards;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: #ff8c00;
+    font-size: 1.5em;
+}
+
+.modal-content p {
+    color: #f0f0f0;
+    font-size: 1.1em;
+    margin: 15px 0 25px 0;
+}
+
+/* 💡 NUEVO: Estilos para el input y select del modal */
+.modal-content input[type="text"],
+.modal-content select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #666;
+    background-color: #555;
+    color: #f0f0f0;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.modal-btn {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1em;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.modal-btn-confirm {
+    background-color: #28a745;
+    color: white;
+}
+
+.modal-btn-cancel {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* --- ESTILOS PARA EL MENÚ DE USUARIO (COPIADOS DE admin.css) --- */
+.user-menu {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.user-icon {
+    font-size: 2.5em;
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.user-icon:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.user-submenu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background-color: #34495e;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    min-width: 250px;
+    padding: 15px;
+    z-index: 100;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.user-submenu.show {
+    display: block;
+}
+
+.user-info {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;
+}
+
+.user-info p {
+    margin: 5px 0;
+    font-size: 0.95em;
+    word-wrap: break-word;
+}
+
+.user-info strong {
+    font-size: 1.1em;
+    color: #ffb347;
+}
+
+.submenu-button {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #ecf0f1;
+    padding: 10px 10px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1em;
+    border-radius: 5px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.submenu-button i {
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+
+.submenu-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffb347;
+}
+
+/* --- ESTILOS PARA EL DIÁLOGO DE CONFIRMACIÓN (COPIADOS DE admin.css) --- */
+.confirm-dialog-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 2001;
+    animation: fadeIn 0.3s ease;
+}
+
+.confirm-dialog {
+    background-color: #34495e;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    color: #ecf0f1;
+    min-width: 300px;
+    max-width: 90%;
+    animation: scaleIn 0.3s ease-out;
+}
+
+.confirm-dialog p {
+    margin-bottom: 25px;
+    font-size: 1.2em;
+}
+
+.confirm-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.confirm-buttons button {
+    background-color: #ff8c00;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+/* 💡 NUEVO: Estilos para el contenedor de acciones principales */
+.main-actions-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+}
