@@ -40,71 +40,65 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (isValid) {
+            const submitBtn = loginForm.querySelector('input[type="submit"]');
+            submitBtn.disabled = true; // Deshabilitar para evitar múltiples clics
+
             try {
+                const previousSession = JSON.parse(sessionStorage.getItem('user'));
+                const inputEmail = usernameInput.value.trim().toLowerCase();
+
+                // --- VALIDACIÓN PREVIA: Denegar si ya hay una sesión con otro correo ---
+                if (previousSession) {
+                    const sessionEmail = (previousSession.email || '').toLowerCase().trim();
+                    if (sessionEmail !== inputEmail) {
+                        formMessage.textContent = 'Usted no puede iniciar sesion a mesero.html, chef.html y admin.html con varias cuentas a la vez o cuentas que no te corresponden, favor de ingresar a este sitio con tu cuenta';
+                        formMessage.style.color = '#dc3545';
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                }
+
                 // Primero, inicia sesión con email/password usando authFunctions.js
                 // loginUser retornará la credencial de usuario
-                await loginUser(usernameInput.value, passwordInput.value);
-
-                // Obtener el usuario autenticado actual de Firebase Auth
-                const user = auth.currentUser;
-
-                if (!user) {
-                    formMessage.textContent = 'Error: No se pudo obtener el usuario autenticado.';
-                    formMessage.style.color = '#dc3545';
-                    return;
-                }
-
-                // *** CAMBIO CRUCIAL: Leer el rol directamente desde Firestore ***
-                // Ya no confiamos en los Custom Claims del token para el rol,
-                // porque los Custom Claims no se están estableciendo sin Cloud Functions.
-                const userDocRef = doc(db, 'users', user.uid); // Referencia al documento del usuario en la colección 'users'
-                const userDocSnap = await getDoc(userDocRef); // Obtener la instantánea del documento
-
-                let userRole = null;
-                if (userDocSnap.exists()) {
-                    // Si el documento existe, obtenemos el rol de ahí
-                    userRole = userDocSnap.data().role;
-                } else {
-                    // Esto no debería ocurrir si registerUser/loginUser/googleLogin
-                    // ya crean el documento, pero es un fallback.
-                    console.warn("Documento de usuario no encontrado en Firestore después de iniciar sesión. Asumiendo rol 'cliente' por defecto o manejando como error.");
-                    userRole = 'cliente'; // O maneja esto como un error de acceso
-                }
-
-                // --- NUEVA LÓGICA: Denegar acceso por conflicto de cuentas ---
-                const previousSession = JSON.parse(sessionStorage.getItem('user'));
-                if (previousSession && previousSession.email !== user.email) {
-                    formMessage.textContent = 'Usted no puede iniciar sesion a mesero.html, chef.html y admin.html con varias cuentas a la vez o cuentas que no te corresponden, favor de ingresar a este sitio con tu cuenta';
-                    formMessage.style.color = '#dc3545';
-                    await logoutUser();
-                    sessionStorage.removeItem('user');
-                    return;
-                }
+                const userLoginData = await loginUser(usernameInput.value, passwordInput.value);
+                const userRole = userLoginData.role;
+                const currentEmail = userLoginData.email ? userLoginData.email.toLowerCase() : '';
 
                 // Ahora, verifica el rol obtenido de Firestore
                 if (userRole === 'administrador') {
+                    
+                    // --- NUEVA LÓGICA: Denegar acceso por conflicto de cuentas ---
+                    if (previousSession) {
+                        const sessionEmail = previousSession.email ? previousSession.email.toLowerCase() : '';
+                        if (sessionEmail !== currentEmail) {
+                            formMessage.textContent = 'Usted no puede iniciar sesion a mesero.html, chef.html y admin.html con varias cuentas a la vez o cuentas que no te corresponden, favor de ingresar a este sitio con tu cuenta';
+                            formMessage.style.color = '#dc3545';
+                            await logoutUser();
+                            sessionStorage.removeItem('user');
+                            submitBtn.disabled = false;
+                            return;
+                        }
+                    }
+
                     formMessage.textContent = '¡Inicio de sesión exitoso! Redirigiendo...';
                     formMessage.style.color = '#28a745';
 
                     // Opcional: Guardar la información del usuario en sessionStorage
-                    sessionStorage.setItem('user', JSON.stringify({
-                        uid: user.uid,
-                        email: user.email,
-                        name: user.displayName,
-                        role: userRole // El rol obtenido de Firestore
-                    }));
+                    sessionStorage.setItem('user', JSON.stringify(userLoginData));
 
                     window.location.href = '/pages/admin.html'; // Redirigir a la página de administrador
                 } else {
-                    formMessage.textContent = 'Acceso denegado: Solo los administradores pueden iniciar sesión aquí.';
+                    formMessage.textContent = `Acceso denegado: Solo los administradores pueden iniciar sesión aquí. Tu rol es: ${userRole || 'desconocido'}`;
                     formMessage.style.color = '#dc3545';
-                    // Opcional: Cerrar la sesión del usuario si no es un administrador
-                    // await signOut(auth);
+                    await logoutUser();
+                    submitBtn.disabled = false;
                 }
             } catch (error) {
                 console.error('Error durante el inicio de sesión:', error.message);
                 formMessage.textContent = `Error de inicio de sesión: ${error.message}`;
                 formMessage.style.color = '#dc3545';
+            } finally {
+                submitBtn.disabled = false; // Rehabilitar si hay error o termina
             }
         } else {
             formMessage.textContent = 'Por favor, corrige los errores en el formulario.';

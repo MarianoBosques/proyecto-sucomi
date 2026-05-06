@@ -1,24 +1,24 @@
 // javascript/waiterLogin.js 
 
-import { loginUser, logoutUser } from './auth/authFunctions.js'; 
+import { loginUser, logoutUser } from './auth/authFunctions.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
-    const usernameInput = document.getElementById('username'); 
+    const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
     const usernameError = document.getElementById('usernameError');
     const passwordError = document.getElementById('passwordError');
     const formMessage = document.getElementById('formMessage');
 
-    loginForm.addEventListener('submit', async (event) => { 
+    loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         usernameError.textContent = '';
         passwordError.textContent = '';
         formMessage.textContent = '';
-        formMessage.style.color = '#28a745'; 
+        formMessage.style.color = '#28a745';
 
-        let isValid = true; 
+        let isValid = true;
 
         // Validaciones del lado del cliente
         if (usernameInput.value.trim() === '') {
@@ -38,26 +38,60 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (isValid) {
+            const submitBtn = loginForm.querySelector('input[type="submit"]');
+            submitBtn.disabled = true; // Deshabilitar para evitar múltiples clics
+
             try {
+                // Capturamos la sesión previa antes de intentar el login
+                const previousSession = JSON.parse(sessionStorage.getItem('user'));
+                const inputEmail = usernameInput.value.trim().toLowerCase();
+
+                // --- VALIDACIÓN PREVIA: Denegar si es otro empleado (Permitir si es Administrador) ---
+                if (previousSession && previousSession.role !== 'administrador') {
+                    const sessionEmail = (previousSession.email || '').toLowerCase().trim();
+                    if (sessionEmail !== inputEmail) {
+                        formMessage.textContent = 'Usted no puede iniciar sesion a mesero.html, chef.html y admin.html con varias cuentas a la vez o cuentas que no te corresponden, favor de ingresar a este sitio con tu cuenta';
+                        formMessage.style.color = '#dc3545';
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                }
+
                 // 1. INICIAR SESIÓN usando la función centralizada.
                 const userLoginData = await loginUser(usernameInput.value, passwordInput.value); 
                 const userRole = userLoginData.role; 
 
-                // --- NUEVA LÓGICA: Denegar acceso por conflicto de cuentas o falta de pertenencia ---
-                const previousSession = JSON.parse(sessionStorage.getItem('user'));
-                if (previousSession && previousSession.email !== userLoginData.email) {
-                    formMessage.textContent = 'Usted no puede iniciar sesion a mesero.html, chef.html y admin.html con varias cuentas a la vez o cuentas que no te corresponden, favor de ingresar a este sitio con tu cuenta';
-                    formMessage.style.color = '#dc3545';
-                    await logoutUser();
-                    sessionStorage.removeItem('user');
-                    return;
-                }
+                const currentEmail = userLoginData.email ? userLoginData.email.toLowerCase() : '';
+
+                // --- NUEVA LÓGICA: Denegar acceso por conflicto de cuentas o falta de pertenencia ---
+                if (previousSession) {
+                    const sessionEmail = previousSession.email ? previousSession.email.toLowerCase() : '';
+                    // Caso A: Ya hay un empleado logueado y se intenta usar otra cuenta de empleado
+                    if (previousSession.role !== 'administrador' && sessionEmail !== currentEmail) {
+                        formMessage.textContent = 'Usted no puede iniciar sesion a mesero.html, chef.html y admin.html con varias cuentas a la vez o cuentas que no te corresponden, favor de ingresar a este sitio con tu cuenta';
+                        formMessage.style.color = '#dc3545';
+                        await logoutUser();
+                        sessionStorage.removeItem('user');
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                    // Caso B: Hay un administrador logueado pero el empleado no pertenece a su restaurante
+                    if (previousSession.role === 'administrador' && userLoginData.adminId !== previousSession.uid) {
+                        formMessage.textContent = 'Usted no puede iniciar sesion a mesero.html, chef.html y admin.html con varias cuentas a la vez o cuentas que no te corresponden, favor de ingresar a este sitio con tu cuenta';
+                        formMessage.style.color = '#dc3545';
+                        await logoutUser();
+                        sessionStorage.removeItem('user');
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                }
 
                 // 2. COMPROBACIÓN ESPECÍFICA DE ROL: Solo 'mesero' puede ingresar.
                 if (userRole !== 'mesero') {
                     formMessage.textContent = `Solo los usuarios con el rol mesero pueden ingresar, tu rol es: ${userRole || 'desconocido'}`;
                     formMessage.style.color = '#dc3545';
                     await logoutUser(); // Forzar el cierre de sesión si el rol es incorrecto
+                    submitBtn.disabled = false;
                     return; // Detiene la ejecución
                 }
 
