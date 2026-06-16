@@ -303,3 +303,48 @@ exports.archiveOrders = onCall(async (request) => {
     };
   }
 });
+
+// ==================================================
+// FUNCIÓN 4: eliminarHistorial_v2 (NUEVA - GEN2)
+// ==================================================
+exports.eliminarHistorial_v2 = onCall(async (request) => {
+  const context = request.auth;
+  const db = admin.firestore();
+
+  // 1. Verificación de administrador
+  if (!context || context.token.role !== "administrador") {
+    throw new functions.https.HttpsError(
+        "permission-denied",
+        "Solo los administradores pueden borrar el historial.",
+    );
+  }
+
+  const adminId = context.uid;
+  const reportsRef = db.collection("users").doc(adminId).collection("reports");
+
+  try {
+    const snapshot = await reportsRef.get();
+    if (snapshot.empty) {
+      return {message: "No hay reportes archivados para eliminar."};
+    }
+
+    // Usamos un lote (batch) para borrar eficientemente
+    const batch = db.batch();
+
+    for (const reportDoc of snapshot.docs) {
+      // Borrar subcolección de órdenes del reporte
+      const ordersSnapshot = await reportDoc.ref.collection("orders").get();
+      ordersSnapshot.docs.forEach((orderDoc) => {
+        batch.delete(orderDoc.ref);
+      });
+      // Borrar el reporte principal
+      batch.delete(reportDoc.ref);
+    }
+
+    await batch.commit();
+    return {message: "El historial ha sido eliminado correctamente."};
+  } catch (error) {
+    console.error("Error al borrar historial:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});

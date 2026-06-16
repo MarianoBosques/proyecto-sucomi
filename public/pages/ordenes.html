@@ -33,9 +33,14 @@
     <main>
         <div class="main-header-controls">
             <h2>Historial de Reportes Archivados</h2>
-            <a href="control.html" class="button back-button">
-                <i class="fas fa-arrow-left"></i> Volver al Control
-            </a>
+            <div class="header-actions">
+                <a href="control.html" class="button back-button">
+                    <i class="fas fa-arrow-left"></i> Volver al Control
+                </a>
+                <button id="delete-orders-btn" class="button delete-all-orders">
+                    <i class="fas fa-trash"></i> Borrar todas las ordenes
+                </button>
+            </div>
         </div>
         
         <div id="reportsContainer" class="reports-main-container">

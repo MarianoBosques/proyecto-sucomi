@@ -87,6 +87,31 @@ main h2 {
     margin-right: 8px;
 }
 
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.button.delete-all-orders {
+    background-color: #dc3545;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.button.delete-all-orders:hover {
+    background-color: #c82333;
+    transform: scale(1.02);
+}
+
 /* Contenedor principal de reportes */
 .reports-main-container {
     display: flex;

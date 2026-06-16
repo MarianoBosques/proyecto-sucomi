@@ -1,6 +1,7 @@
 // javascript/ordenes.js
 
-import { auth, db } from './auth/firebaseConfig.js';
+import { auth, db, functions } from './auth/firebaseConfig.js';
+import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 import { onAuthStateChanged, signOut, getIdTokenResult } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
     collection,
@@ -8,7 +9,8 @@ import {
     getDoc,
     getDocs,
     query,
-    orderBy
+    orderBy,
+    deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -87,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initializeReportsPage(adminId) {
         await loadAdminAppearanceSettings(adminId);
         await loadAndRenderReports(adminId);
+        setupDeleteAllButton(adminId);
     }
 
     async function loadAdminAppearanceSettings(adminId) {
@@ -231,5 +234,35 @@ document.addEventListener('DOMContentLoaded', () => {
         printWindow.document.write('</body></html>');
         printWindow.document.close();
         printWindow.print();
+    }
+
+    function setupDeleteAllButton(adminId) {
+        const deleteBtn = document.getElementById('delete-orders-btn');
+        if (!deleteBtn) return;
+
+        const originalContent = deleteBtn.innerHTML;
+
+        deleteBtn.addEventListener('click', async () => {
+            const confirmed = confirm("¿Deseas eliminar permanentemente TODOS los reportes y órdenes ARCHIVADAS? Las órdenes activas en Control no se verán afectadas.");
+            if (!confirmed) return;
+
+            try {
+                deleteBtn.disabled = true;
+                deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+
+                // Llamamos a la Cloud Function para saltar restricciones de permisos locales
+                const eliminarHistorial = httpsCallable(functions, 'eliminarHistorial_v2');
+                const result = await eliminarHistorial();
+
+                alert(result.data.message);
+                await loadAndRenderReports(adminId); // Recargar la vista
+            } catch (error) {
+                console.error("Error crítico al borrar historial:", error);
+                alert("Error de permisos o conexión: " + error.message);
+            } finally {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = originalContent;
+            }
+        });
     }
 });
