@@ -193,7 +193,95 @@ exports.registrarEmpleado_v2 = onCall(async (request) => {
 });
 
 // ==================================================
-// FUNCIÓN 3: archiveOrders (NUEVA - GEN2)
+// FUNCIÓN 3: eliminarEmpleado_v2 (NUEVA - GEN2)
+// ==================================================
+exports.eliminarEmpleado_v2 = onCall(async (request) => {
+  const context = request.auth;
+  const data = request.data;
+  const db = admin.firestore();
+
+  if (!context || context.token.role !== "administrador") {
+    throw new functions.https.HttpsError(
+        "permission-denied",
+        "Solo los administradores pueden eliminar empleados.",
+    );
+  }
+
+  const adminId = context.uid;
+  const {employeeId} = data || {};
+
+  if (!employeeId || typeof employeeId !== "string") {
+    throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Se requiere el ID del empleado a eliminar.",
+    );
+  }
+
+  if (employeeId === adminId) {
+    throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Un administrador no puede eliminarse desde esta pantalla.",
+    );
+  }
+
+  const employeeDocRef = db.collection("users")
+      .doc(adminId)
+      .collection("empleados")
+      .doc(employeeId);
+  const adminDocRef = db.collection("users").doc(adminId);
+
+  try {
+    const employeeDoc = await employeeDocRef.get();
+    if (!employeeDoc.exists) {
+      throw new functions.https.HttpsError(
+          "not-found",
+          "El empleado no existe o ya fue eliminado.",
+      );
+    }
+
+    let authUserExists = true;
+    try {
+      const userRecord = await admin.auth().getUser(employeeId);
+      const claims = userRecord.customClaims || {};
+      const isEmployee = claims.role === "chef" || claims.role === "mesero";
+
+      if (!isEmployee || claims.adminId !== adminId) {
+        throw new functions.https.HttpsError(
+            "failed-precondition",
+            "El usuario de Auth no pertenece a este administrador.",
+        );
+      }
+    } catch (error) {
+      if (error.code === "auth/user-not-found") {
+        authUserExists = false;
+      } else {
+        throw error;
+      }
+    }
+
+    if (authUserExists) {
+      await admin.auth().deleteUser(employeeId);
+    }
+
+    const batch = db.batch();
+    batch.delete(employeeDocRef);
+    batch.update(adminDocRef, {
+      empleados: admin.firestore.FieldValue.arrayRemove(employeeId),
+    });
+    await batch.commit();
+
+    return {message: "El empleado fue eliminado completamente."};
+  } catch (error) {
+    console.error("Error al eliminar empleado:", error);
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    }
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+// ==================================================
+// FUNCIÓN 4: archiveOrders (NUEVA - GEN2)
 // ==================================================
 exports.archiveOrders = onCall(async (request) => {
   const context = request.auth;

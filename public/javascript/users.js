@@ -1,16 +1,14 @@
 // javascript/users.js
 
-import { auth, db } from './auth/firebaseConfig.js';
+import { auth, db, functions } from './auth/firebaseConfig.js';
 import { onAuthStateChanged, signOut, getIdTokenResult } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
     collection,
     doc,
     getDoc,
-    getDocs,
-    deleteDoc,
-    updateDoc,
-    arrayRemove
+    getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -163,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 button.addEventListener('click', (event) => {
                     const uid = event.currentTarget.dataset.uid;
                     const name = event.currentTarget.dataset.name;
-                    handleDeleteUser(adminId, uid, name);
+                    handleDeleteUser(adminId, uid, name, event.currentTarget);
                 });
             });
 
@@ -174,20 +172,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Manejar la eliminación de un usuario
-    async function handleDeleteUser(adminId, employeeId, employeeName) {
-        const confirmDelete = confirm(`¿Estás seguro de que deseas eliminar al empleado "${employeeName}"? Esta acción lo eliminará de la base de datos y no podrá acceder.`);
+    async function handleDeleteUser(adminId, employeeId, employeeName, deleteButton) {
+        const confirmDelete = confirm(`¿Estás seguro de que deseas eliminar al empleado "${employeeName}"? Esta acción lo eliminará de Firebase Auth y de la base de datos.`);
 
         if (confirmDelete) {
+            const originalButtonContent = deleteButton ? deleteButton.innerHTML : '';
+
             try {
-                // 1. Eliminar el documento de la subcolección 'empleados'
-                await deleteDoc(doc(db, 'users', adminId, 'empleados', employeeId));
+                if (deleteButton) {
+                    deleteButton.disabled = true;
+                    deleteButton.textContent = 'Eliminando...';
+                }
 
-                // 2. Eliminar el ID del empleado del array 'empleados' en el documento del administrador
-                await updateDoc(doc(db, 'users', adminId), {
-                    empleados: arrayRemove(employeeId)
-                });
+                const eliminarEmpleado = httpsCallable(functions, 'eliminarEmpleado_v2');
+                const result = await eliminarEmpleado({ employeeId });
 
-                alert(`El empleado ${employeeName} ha sido eliminado correctamente.`);
+                alert(result.data.message || `El empleado ${employeeName} ha sido eliminado correctamente.`);
                 
                 // Recargar la lista
                 await loadAndRenderUsers(adminId);
@@ -195,6 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error("Error al eliminar empleado:", error);
                 alert("Hubo un error al eliminar al empleado: " + error.message);
+                if (deleteButton) {
+                    deleteButton.disabled = false;
+                    deleteButton.innerHTML = originalButtonContent;
+                }
             }
         }
     }
