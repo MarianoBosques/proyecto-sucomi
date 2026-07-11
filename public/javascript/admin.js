@@ -2,6 +2,7 @@
 
 // --- 1. Importaciones de tus archivos locales (INSTANCIAS de Firebase) ---
 import { auth, db } from './auth/firebaseConfig.js';
+import { checkUserRole } from './utils/uiHelpers.js';
 // Importamos las funciones de Firestore para la gestión del menú
 import {
     collection,
@@ -20,50 +21,17 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Lógica de autenticación y verificación de rol
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            await checkUserRole(user);
-        } else {
-            // Si no hay usuario, se redirige al login
-            window.location.href = '/login.html'; 
-        }
-    });
-
-    
-    async function checkUserRole(user) {
-        try {
-            // 1. Intenta obtener el rol desde sessionStorage (más rápido y estable)
-            const userDataString = sessionStorage.getItem('user');
-            if (userDataString) {
-                const userData = JSON.parse(userDataString);
-                if (userData.role === 'administrador') {
-                    console.log('Acceso concedido (desde sessionStorage). Usuario es un administrador.');
-                    initializeAdminPanel();
-                    initializeUserMenu();
-                    initializeMenuManagement();
-                    return; // Salimos de la función si el rol es correcto
-                }
-            }
-    
-            // 2. Si falla o no existe, verifica con Firestore como respaldo (más lento)
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists() && userDocSnap.data().role === 'administrador') {
-                console.log('Acceso concedido (desde Firestore). Usuario es un administrador.');
-                initializeAdminPanel();
-                initializeUserMenu();
-                initializeMenuManagement();
-            } else {
-                throw new Error('Acceso denegado. No tienes permisos de administrador.');
-            }
-        } catch (error) {
-            console.error("Error de verificación de rol:", error.message);
-            alert(error.message);
-            await signOut(auth); // Cierra sesión para evitar estados inconsistentes
-            window.location.href = '/login.html'; // Redirige al login
-        }
-    }
+    // 💡 Lógica de autenticación y verificación de rol reactiva mediante middleware
+    checkUserRole(auth, db, 'administrador', '/login.html')
+        .then(({ user, adminId }) => {
+            console.log('Acceso concedido (middleware). Usuario es administrador.');
+            initializeAdminPanel();
+            initializeUserMenu();
+            initializeMenuManagement();
+        })
+        .catch((error) => {
+            console.error("Fallo de enrutamiento de administrador:", error);
+        });
 
     // --- LÓGICA PARA EL MENÚ DE USUARIO (COPIADA DE principal.js) ---
     function initializeUserMenu() {

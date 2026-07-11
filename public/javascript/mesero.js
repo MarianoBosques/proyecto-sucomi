@@ -2,6 +2,7 @@
 
 //1. Importaciones de archivos de Firebase
 import { auth, db, functions } from './auth/firebaseConfig.js';
+import { checkUserRole } from './utils/uiHelpers.js';
 import {
     collection,
     doc,
@@ -19,55 +20,16 @@ import { onAuthStateChanged, signOut, getIdTokenResult } from "https://www.gstat
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    
-    // Verificación de autenticación y rol
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            await checkUserRole(user);
-        } else {
-            window.location.href = '/waiterLogin.html';
-        }
-    });
-
-    async function checkUserRole(user) {
-        if (!user || !user.uid) {
-            alert("Error al verificar tu cuenta.");
-            await signOut(auth);
-            window.location.href = '/waiterLogin.html';
-            return;
-        }
-    
-        try {
-            // 1. Intenta obtener el rol desde sessionStorage (más rápido y estable)
-            const userDataString = sessionStorage.getItem('user');
-            if (userDataString) {
-                const userData = JSON.parse(userDataString);
-                if (userData.role === 'mesero' && userData.adminId) {
-                    console.log(`Acceso concedido (desde sessionStorage). Rol: ${userData.role}, Admin: ${userData.adminId}`);
-                    initializeWaiterPanel(userData.adminId);
-                    initializeUserMenu();
-                    return; // Salimos de la función si el rol es correcto
-                }
-            }
-
-            // 2. Si falla o no existe, verifica con el token como respaldo (más lento)
-            const tokenResult = await getIdTokenResult(user, true); // Forzar solo si es necesario
-            const claims = tokenResult.claims;
-
-            if (claims.role === 'mesero' && claims.adminId) {
-                console.log(`Acceso concedido (desde token). Rol: ${claims.role}, Admin: ${claims.adminId}`);
-                initializeWaiterPanel(claims.adminId);
-                initializeUserMenu();
-            } else {
-                throw new Error(`Acceso denegado. Tu rol es '${claims.role || "desconocido"}' o falta información de administrador. Se requiere 'mesero'.`);
-            }
-        } catch (error) {
-            console.error("Error al verificar el rol del usuario:", error);
-            alert(error.message);
-            await signOut(auth);
-            window.location.href = '/login.html'; // Redirigir al login general
-        }
-    }
+    // 💡 Verificación de autenticación y rol reactiva mediante middleware
+    checkUserRole(auth, db, 'mesero', '/waiterLogin.html')
+        .then(({ user, adminId }) => {
+            console.log(`Acceso concedido (middleware). Rol: mesero, Admin: ${adminId}`);
+            initializeWaiterPanel(adminId);
+            initializeUserMenu();
+        })
+        .catch((error) => {
+            console.error("Fallo de enrutamiento de mesero:", error);
+        });
 
     // --- LÓGICA PARA EL MENÚ DE USUARIO (COPIADA DE admin.js) ---
     function initializeUserMenu() {

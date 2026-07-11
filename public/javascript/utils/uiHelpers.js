@@ -12,46 +12,39 @@ export async function checkUserRole(auth, db, expectedRole, redirectLoginUrl = '
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             unsubscribe();
             if (!user) {
+                sessionStorage.removeItem('user');
                 window.location.href = redirectLoginUrl;
                 return reject(new Error("Usuario no autenticado"));
             }
 
             try {
-                // 1. Verificar en sessionStorage
-                const userDataString = sessionStorage.getItem('user');
-                if (userDataString) {
-                    const userData = JSON.parse(userDataString);
-                    if (userData.role === expectedRole) {
-                        const adminId = expectedRole === 'administrador' ? user.uid : userData.adminId;
-                        resolve({ user, adminId, role: userData.role });
-                        return;
-                    }
-                }
-
-                // 2. Respaldo: Verificar en token / Firestore
+                // 💡 MEJORA SEGURIDAD: Validar el token de sesión (Custom Claims) en tiempo real con Firebase Auth
+                // Refrescamos proactivamente el token para asegurar la validez de los roles.
+                const tokenResult = await getIdTokenResult(user, true);
+                const claims = tokenResult.claims;
+                
                 let adminId = user.uid;
-                let role = expectedRole;
+                let role = claims.role;
 
                 if (expectedRole === 'administrador') {
-                    const userDocRef = doc(db, 'users', user.uid);
-                    const userDocSnap = await getDoc(userDocRef);
-                    if (userDocSnap.exists() && userDocSnap.data().role === 'administrador') {
-                        role = 'administrador';
-                    } else {
-                        throw new Error('Acceso denegado. No tienes permisos de administrador.');
+                    if (role !== 'administrador') {
+                        // Respaldo en Firestore si los claims aún no se han propagado tras el registro
+                        const userDocRef = doc(db, 'users', user.uid);
+                        const userDocSnap = await getDoc(userDocRef);
+                        if (userDocSnap.exists() && userDocSnap.data().role === 'administrador') {
+                            role = 'administrador';
+                        } else {
+                            throw new Error('Acceso denegado. No tienes permisos de administrador.');
+                        }
                     }
                 } else {
-                    const tokenResult = await getIdTokenResult(user, true);
-                    const claims = tokenResult.claims;
-                    if (claims.role === expectedRole && claims.adminId) {
-                        role = claims.role;
-                        adminId = claims.adminId;
-                    } else {
-                        throw new Error(`Acceso denegado. Se requiere rol de '${expectedRole}'.`);
+                    if (role !== expectedRole || !claims.adminId) {
+                        throw new Error(`Acceso denegado. Se requiere rol de '${expectedRole}' y vinculación de administrador.`);
                     }
+                    adminId = claims.adminId;
                 }
 
-                // Sincronizar localmente sessionStorage para futuras validaciones rápidas
+                // Sincronizar sessionStorage para uso cosmético en la interfaz (nombre, correo)
                 const updatedUser = {
                     uid: user.uid,
                     email: user.email,
@@ -65,6 +58,7 @@ export async function checkUserRole(auth, db, expectedRole, redirectLoginUrl = '
             } catch (error) {
                 console.error("Error al verificar el rol del usuario:", error);
                 alert(error.message);
+                sessionStorage.removeItem('user');
                 await signOut(auth);
                 window.location.href = redirectLoginUrl;
                 reject(error);

@@ -2,6 +2,7 @@
 
 // --- 1. Importaciones de tus archivos locales (INSTANCIAS de Firebase) ---
 import { auth, db, functions } from './auth/firebaseConfig.js';
+import { checkUserRole } from './utils/uiHelpers.js';
 
 // --- 2. Importaciones de funciones del SDK de Firebase Authentication ---
 import { onAuthStateChanged, signOut, getIdTokenResult } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -71,55 +72,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // 💡 --- FIN: LÓGICA DEL MODAL PERSONALIZADO ---
 
 
-    // Se mantiene la lógica de autenticación y de verificación de rol
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            await checkUserRole(user);
-        } else {
-            // Redirige al login de empleados en caso de no estar autenticado
-            window.location.href = '/waiterLogin.html';
-        }
-    });
-
-    async function checkUserRole(user) {
-        if (!user || !user.uid) {
-            await customAlert("Error al verificar tu cuenta.", "Error de Autenticación");
-            await signOut(auth);
-            window.location.href = '/chefLogin.html';
-            return;
-        }
-
-        try {
-            // 1. Intenta obtener el rol desde sessionStorage (más rápido y estable)
-            const userDataString = sessionStorage.getItem('user');
-            if (userDataString) {
-                const userData = JSON.parse(userDataString);
-                if (userData.role === 'chef' && userData.adminId) {
-                    console.log(`Acceso concedido (desde sessionStorage). Rol: ${userData.role}, Admin: ${userData.adminId}`);
-                    initializeChefPanel(userData.adminId);
-                    initializeUserMenu();
-                    return; // Salimos de la función si el rol es correcto
-                }
-            }
-
-            // 2. Si falla o no existe, verifica con el token como respaldo (más lento)
-            const tokenResult = await getIdTokenResult(user, true); // Forzar solo si es necesario
-            const claims = tokenResult.claims;
-
-            if (claims.role === 'chef' && claims.adminId) {
-                console.log(`Acceso concedido (desde token). Rol: ${claims.role}, Admin: ${claims.adminId}`);
-                initializeChefPanel(claims.adminId);
-                initializeUserMenu();
-            } else {
-                throw new Error(`Acceso denegado. Tu rol es '${claims.role || "desconocido"}' o falta información de administrador. Se requiere 'chef'.`);
-            }
-        } catch (error) {
-            console.error("Error al verificar el rol del usuario:", error);
-            await customAlert(error.message, "Error");
-            await signOut(auth);
-            window.location.href = '/login.html'; // Redirigir al login general
-        }
-    }
+    // 💡 Verificación de autenticación y rol reactiva mediante middleware
+    checkUserRole(auth, db, 'chef', '/chefLogin.html')
+        .then(({ user, adminId }) => {
+            console.log(`Acceso concedido (middleware). Rol: chef, Admin: ${adminId}`);
+            initializeChefPanel(adminId);
+            initializeUserMenu();
+        })
+        .catch((error) => {
+            console.error("Fallo de enrutamiento de chef:", error);
+        });
 
     // --- LÓGICA PARA EL MENÚ DE USUARIO (COPIADA DE admin.js) ---
     function initializeUserMenu() {
