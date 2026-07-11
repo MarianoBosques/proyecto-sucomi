@@ -43,12 +43,17 @@ service cloud.firestore {
         // 💡 CORRECCIÓN: Un mesero solo puede crear órdenes para SU administrador.
         // Comparamos el `adminId` de su token con el `userId` de la ruta.
         allow create: if hasRole('mesero') && request.auth.token.adminId == userId;
-        allow read: if hasRole('mesero') || hasRole('chef') || (hasRole('administrador') && request.auth.uid == userId);
-        allow update: if hasRole('chef') || (hasRole('administrador') && request.auth.uid == userId) || (hasRole('mesero') && request.resource.data.waiterId == request.auth.uid);
-        // 💡 CORRECCIÓN: Un mesero puede eliminar una orden si es el creador de la misma.
+        // 💡 CORRECCIÓN SEGURIDAD: Se valida que el empleado (mesero/chef) pertenezca a este administrador (userId).
+        allow read: if (request.auth.token.adminId == userId && (hasRole('mesero') || hasRole('chef'))) || 
+                      (hasRole('administrador') && request.auth.uid == userId);
+        // 💡 CORRECCIÓN SEGURIDAD: Se valida la pertenencia al administrador correspondiente.
+        allow update: if (hasRole('chef') && request.auth.token.adminId == userId) || 
+                      (hasRole('administrador') && request.auth.uid == userId) || 
+                      (hasRole('mesero') && request.auth.token.adminId == userId && resource.data.waiterId == request.auth.uid);
+        // 💡 CORRECCIÓN: Un mesero puede eliminar una orden si es el creador de la misma de su restaurante.
         // Un administrador también puede eliminar cualquier orden de su restaurante.
         allow delete: if (hasRole('administrador') && request.auth.uid == userId) ||
-                      (hasRole('mesero') && resource.data.waiterId == request.auth.uid);
+                      (hasRole('mesero') && request.auth.token.adminId == userId && resource.data.waiterId == request.auth.uid);
       }
 
       // =======================================================
