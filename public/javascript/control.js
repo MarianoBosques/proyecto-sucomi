@@ -1,6 +1,7 @@
 // javascript/control.js
 
 import { auth, db, functions } from './auth/firebaseConfig.js'; // 💡 functions se importa pero no se usaba, ahora sí.
+import { checkUserRole } from './utils/uiHelpers.js';
 import { onAuthStateChanged, signOut, getIdTokenResult } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
     collection,
@@ -93,36 +94,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // 💡 --- FIN: LÓGICA DEL MODAL PERSONALIZADO ---
 
 
-    // Check user authentication and role
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            await checkUserRole(user); // La función ahora es asíncrona
-        } else {
-            window.location.href = '/login.html'; // Redirigir al login principal
-        }
-    });
-
-    // Verify the user's role and get the associated adminId
-    async function checkUserRole(user) {
-        try {
-            const tokenResult = await getIdTokenResult(user, true);
-            const userRole = tokenResult.claims.role;
-
-            if (userRole === 'administrador') {
-                console.log('Acceso concedido. Usuario es un administrador.');
-                initializeControlPanel(user.uid); // El admin usa su propio UID
-                initializeUserMenu(); // Inicializar el menú de usuario
-                initializeArchiveFunctionality(user.uid); // 💡 CORRECCIÓN: Llamar a la función para activar el botón de archivar.
-            } else {
-                throw new Error(`Acceso denegado. Tu rol es '${userRole || "desconocido"}', se requiere 'administrador'.`);
-            }
-        } catch (error) {
-            console.error("Error al verificar el rol del usuario:", error);
-            await customAlert(error.message, "Error de Acceso");
-            await signOut(auth);
-            window.location.href = '/login.html';
-        }
-    }
+    // 💡 Verificación de autenticación y rol reactiva mediante middleware
+    checkUserRole(auth, db, 'administrador', '/login.html')
+        .then(({ user, adminId }) => {
+            console.log('Acceso concedido (middleware). Usuario es administrador.');
+            initializeControlPanel(adminId); 
+            initializeUserMenu();
+            initializeArchiveFunctionality(adminId);
+        })
+        .catch((error) => {
+            console.error("Fallo de enrutamiento en panel de control:", error);
+        });
 
     // --- LÓGICA PARA EL MENÚ DE USUARIO (COPIADA DE admin.js) ---
     function initializeUserMenu() {

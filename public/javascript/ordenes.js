@@ -1,6 +1,7 @@
 // javascript/ordenes.js
 
 import { auth, db, functions } from './auth/firebaseConfig.js';
+import { checkUserRole } from './utils/uiHelpers.js';
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 import { onAuthStateChanged, signOut, getIdTokenResult } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
@@ -15,32 +16,15 @@ import {
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            await checkUserRole(user);
-        } else {
-            window.location.href = '/login.html';
-        }
-    });
-
-    async function checkUserRole(user) {
-        try {
-            const tokenResult = await getIdTokenResult(user, true);
-            const userRole = tokenResult.claims.role;
-
-            if (userRole === 'administrador') {
-                initializeUserMenu();
-                initializeReportsPage(user.uid);
-            } else {
-                throw new Error(`Acceso denegado. Se requiere rol de 'administrador'.`);
-            }
-        } catch (error) {
-            console.error("Error al verificar el rol del usuario:", error);
-            alert(error.message);
-            await signOut(auth);
-            window.location.href = '/login.html';
-        }
-    }
+    // 💡 Verificación de autenticación y rol reactiva mediante middleware
+    checkUserRole(auth, db, 'administrador', '/login.html')
+        .then(({ user, adminId }) => {
+            initializeUserMenu();
+            initializeReportsPage(adminId);
+        })
+        .catch((error) => {
+            console.error("Fallo de enrutamiento en panel de órdenes:", error);
+        });
 
     function initializeUserMenu() {
         const userIcon = document.getElementById('userIcon');
