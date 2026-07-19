@@ -37,7 +37,7 @@ async function cerrarSesion() {
         try {
             await signOut(auth);
             sessionStorage.removeItem('user');
-            window.location.href = "/pages/login.html";
+            window.location.href = "/login.html";
         } catch (error) {
             console.error("Error al cerrar sesión:", error);
             alert("No se pudo cerrar la sesión: " + error.message);
@@ -98,7 +98,7 @@ async function guardarPerfil() {
     const user = auth.currentUser;
     if (!user) {
         alert("No hay usuario autenticado para guardar el perfil.");
-        window.location.href = "/pages/login.html"; 
+        window.location.href = "/login.html"; 
         return;
     }
 
@@ -184,7 +184,7 @@ auth.onAuthStateChanged(user => {
         loadUserProfile();
     } else {
         console.log("No hay usuario autenticado. Redirigiendo a login.");
-        window.location.href = "/pages/login.html";
+        window.location.href = "/login.html";
     }
 });
 
