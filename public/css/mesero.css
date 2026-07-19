@@ -435,6 +435,13 @@ main h2 {
     font-size: 1.1em;
 }
 
+.order-card .waiter-name-history {
+    font-weight: bold;
+    color: #28a745;
+    font-size: 1em;
+    margin-top: 2px;
+}
+
 .order-card .order-items-history {
     white-space: pre-wrap;
     font-family: monospace;

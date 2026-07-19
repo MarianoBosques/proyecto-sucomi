@@ -139,10 +139,39 @@ main h2 {
     min-height: 250px;
 }
 
-/* Estilo para la nota marcada como pagada */
+/* Estilos para estatus de color en las órdenes */
+.order-card-control.pending {
+    background-color: rgba(255, 193, 7, 0.15);
+    border-color: #ffc107;
+}
+
+.order-card-control.completed {
+    background-color: rgba(0, 123, 255, 0.15);
+    border-color: #007bff;
+}
+
 .order-card-control.paid {
-    background-color: rgba(40, 167, 69, 0.5);
+    background-color: rgba(40, 167, 69, 0.35);
     border-color: #28a745;
+}
+
+.users-roles-info {
+    font-size: 0.9em;
+    color: #ccc;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.user-info-row {
+    margin: 4px 0;
+    line-height: 1.4;
+}
+
+.user-info-row strong {
+    color: #ffc107;
 }
 
 .order-card-control h4 {

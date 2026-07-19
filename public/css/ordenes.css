@@ -176,7 +176,37 @@ main h2 {
     justify-content: space-between;
     min-height: 250px;
 }
-.order-card-control.paid { background-color: rgba(40, 167, 69, 0.5); border-color: #28a745; }
+.order-card-control.pending {
+    background-color: rgba(255, 193, 7, 0.15);
+    border-color: #ffc107;
+}
+.order-card-control.completed {
+    background-color: rgba(0, 123, 255, 0.15);
+    border-color: #007bff;
+}
+.order-card-control.paid {
+    background-color: rgba(40, 167, 69, 0.35);
+    border-color: #28a745;
+}
+
+.users-roles-info {
+    font-size: 0.9em;
+    color: #ccc;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.user-info-row {
+    margin: 4px 0;
+    line-height: 1.4;
+}
+
+.user-info-row strong {
+    color: #ffc107;
+}
 .order-card-control h4 { margin-top: 0; color: #ffc107; font-size: 1.6em; border-bottom: 1px solid rgba(255, 255, 255, 0.3); padding-bottom: 10px; margin-bottom: 15px; text-align: center; }
 .order-card-control .waiter-name { font-size: 1.1em; color: #28a745; font-weight: bold; margin-bottom: 10px; text-align: center; }
 .order-card-control pre { white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; font-size: 1em; color: #f0f0f0; background-color: rgba(0, 0, 0, 0.5); padding: 12px; border-radius: 5px; margin-bottom: 15px; max-height: 120px; overflow-y: auto; }

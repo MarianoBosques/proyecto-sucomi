@@ -96,6 +96,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function getOrderStatusClass(status) {
+        if (status === 'pending') return 'pending';
+        if (status === 'completed') return 'completed';
+        if (status === 'paid') return 'paid';
+        return '';
+    }
+
     async function loadAndRenderReports(adminId) {
         const reportsContainer = document.getElementById('reportsContainer');
         const reportsRef = collection(db, 'users', adminId, 'reports');
@@ -145,21 +152,26 @@ document.addEventListener('DOMContentLoaded', () => {
                         const orderData = orderDoc.data();
                         const orderCard = document.createElement('div');
                         orderCard.className = 'order-card-control';
-                        if (orderData.status === 'paid') {
-                            orderCard.classList.add('paid');
+                        const statusClass = getOrderStatusClass(orderData.status);
+                        if (statusClass) {
+                            orderCard.classList.add(statusClass);
                         }
                         // Asignamos un ID único a la tarjeta para la función de impresión
                         orderCard.id = `order-${orderDoc.id}`;
 
                         const orderContent = orderData.orderDetails || 'Detalles no disponibles';
                         const timestamp = orderData.createdAt ? new Date(orderData.createdAt.toDate()).toLocaleString() : 'N/A';
+                        const completedTimestamp = orderData.completedAt ? new Date(orderData.completedAt.toDate()).toLocaleString() : 'N/A';
+                        const chefName = orderData.completedByChef || 'N/A';
 
                         orderCard.innerHTML = `
                             <h4>Mesa: ${orderData.clientName || 'Sin Mesa'}</h4>
-                            <p class="waiter-name">Mesero: ${orderData.waiterName || 'Desconocido'}</p>
                             <pre>${orderContent}</pre>
+                            <div class="users-roles-info">
+                                <p class="user-info-row"><strong>Rol:</strong> Mesero | <strong>Nombre:</strong> ${orderData.waiterName || 'Desconocido'} | <strong>Fecha:</strong> ${timestamp}</p>
+                                <p class="user-info-row"><strong>Rol:</strong> Chef | <strong>Nombre:</strong> ${chefName} | <strong>Fecha:</strong> ${orderData.status === 'completed' || orderData.status === 'paid' ? completedTimestamp : 'Pendiente'}</p>
+                            </div>
                             <p class="total-price">Total: $${parseFloat(orderData.total).toFixed(2)}</p>
-                            <p class="timestamp">Enviado: ${timestamp}</p>
                             <div class="order-actions">
                                 <button class="print-button" data-order-id="${orderDoc.id}"><i class="fas fa-print"></i> Imprimir</button>
                             </div>

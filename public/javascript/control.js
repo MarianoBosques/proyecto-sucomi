@@ -227,6 +227,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
 
+        function getOrderStatusClass(status) {
+            if (status === 'pending') return 'pending';
+            if (status === 'completed') return 'completed';
+            if (status === 'paid') return 'paid';
+            return '';
+        }
+
         /**
          * Renders all sent orders in the control panel.
          * @param {Array} orders - The array of order objects from Firestore.
@@ -245,11 +252,9 @@ document.addEventListener('DOMContentLoaded', () => {
             orders.forEach(order => {
                 const orderCard = document.createElement('div');
                 orderCard.classList.add('order-card-control');
-                if (order.status === 'completed') {
-                    orderCard.classList.add('completed');
-                }
-                if (order.status === 'paid') {
-                    orderCard.classList.add('paid');
+                const statusClass = getOrderStatusClass(order.status);
+                if (statusClass) {
+                    orderCard.classList.add(statusClass);
                 }
                 orderCard.dataset.orderId = order.id;
 
@@ -264,12 +269,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 orderCard.innerHTML = `
                     <h4>Mesa: ${order.clientName || 'Sin Mesa'}</h4>
-                    <p class="waiter-name">Mesero: ${order.waiterName || 'Desconocido'}</p>
                     <pre>${orderContent}</pre>
+                    <div class="users-roles-info">
+                        <p class="user-info-row"><strong>Rol:</strong> Mesero | <strong>Nombre:</strong> ${order.waiterName || 'Desconocido'} | <strong>Fecha:</strong> ${timestamp}</p>
+                        <p class="user-info-row"><strong>Rol:</strong> Chef | <strong>Nombre:</strong> ${chefName} | <strong>Fecha:</strong> ${order.status === 'completed' || order.status === 'paid' ? completedTimestamp : 'Pendiente'}</p>
+                    </div>
                     <div>
                         <p class="total-price">Total: $${parseFloat(order.total).toFixed(2)}</p>
-                        <p class="timestamp">Enviado: ${timestamp}</p>
-                        ${order.status === 'completed' || order.status === 'paid' ? `<p class="completed-timestamp">Completado por ${chefName}: ${completedTimestamp}</p>` : ''}
                     </div>
                     <div class="order-actions">
                         ${order.status !== 'paid' ? `<button class="paid-button" data-order-id="${order.id}">Pagado</button>` : ''}

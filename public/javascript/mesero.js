@@ -542,6 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 orderCard.innerHTML = `
                     <button class="delete-history-order-btn" title="Eliminar del historial">&times;</button>
                     <p class="client-name-history">Cliente: ${order.clientName}</p>
+                    <p class="waiter-name-history">Mesero: ${order.waiterName || 'Desconocido'}</p>
                     <pre class="order-items-history">${orderContent}</pre>
                     <p class="order-total-history">Total: $${order.total.toFixed(2)}</p>
                     <!-- 💡 CORRECCIÓN: Se verifica si createdAt existe antes de usarlo -->
