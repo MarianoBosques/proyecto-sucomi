@@ -15,6 +15,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
+    const headerTextElement = document.getElementById('header-text');
+    const restaurantLogoImg = document.getElementById('restaurant-logo');
 
     // 💡 Verificación de autenticación y rol reactiva mediante middleware
     checkUserRole(auth, db, 'administrador', '/login.html')
@@ -77,8 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadAdminAppearanceSettings(adminId) {
-        const headerTextElement = document.getElementById('header-text');
-        const restaurantLogoImg = document.getElementById('restaurant-logo');
         try {
             const adminDocRef = doc(db, 'users', adminId);
             const adminDocSnap = await getDoc(adminDocRef);
@@ -101,6 +101,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (status === 'completed') return 'completed';
         if (status === 'paid') return 'paid';
         return '';
+    }
+
+    function buildTicketMarkup(contentHtml, title = 'Orden') {
+        const restaurantName = headerTextElement?.textContent?.trim() || 'SUCOMI';
+        const logoUrl = restaurantLogoImg && restaurantLogoImg.src && restaurantLogoImg.style.display !== 'none'
+            ? restaurantLogoImg.src
+            : '';
+
+        return `
+            <div class="ticket-wrapper">
+                <div class="ticket-header">
+                    ${logoUrl ? `<img src="${logoUrl}" alt="${restaurantName}" class="ticket-logo">` : ''}
+                    <h1 class="ticket-restaurant-name">${restaurantName}</h1>
+                    <p class="ticket-subtitle">${title}</p>
+                </div>
+                ${contentHtml}
+            </div>
+        `;
     }
 
     async function loadAndRenderReports(adminId) {
@@ -207,26 +225,92 @@ document.addEventListener('DOMContentLoaded', () => {
     function printOrder(orderCardElement) {
         const contentToPrint = orderCardElement.cloneNode(true);
 
-        // Eliminar el contenedor de botones de acción en el clon
         const actionsDiv = contentToPrint.querySelector('.order-actions');
         if (actionsDiv) {
             actionsDiv.remove();
         }
 
         const printWindow = window.open('', '_blank');
-        printWindow.document.write('<html><head><title>Imprimir Orden</title>');
+        if (!printWindow) {
+            alert('Tu navegador bloqueó la ventana de impresión.');
+            return;
+        }
+
+        printWindow.document.write('<html><head><meta charset="utf-8"><title>Imprimir Orden</title>');
         printWindow.document.write('<style>');
         printWindow.document.write(`
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            h4 { font-size: 1.4em; text-align: center; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 15px; }
-            p { margin: 5px 0; }
-            .waiter-name { font-style: italic; color: #555; }
-            pre { white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-            .total-price { font-weight: bold; font-size: 1.2em; text-align: right; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; }
-            .timestamp { font-size: 0.8em; color: #777; text-align: right; }
+            @page { size: 80mm auto; margin: 0; }
+            body {
+                width: 80mm;
+                max-width: 80mm;
+                margin: 0;
+                padding: 3mm;
+                box-sizing: border-box;
+                font-family: Arial, sans-serif;
+                font-size: 10px;
+                line-height: 1.25;
+                color: #111;
+            }
+            .ticket-wrapper {
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .ticket-header {
+                text-align: center;
+                border-bottom: 1px dashed #000;
+                padding-bottom: 3mm;
+                margin-bottom: 3mm;
+            }
+            .ticket-logo {
+                max-width: 36mm;
+                max-height: 14mm;
+                object-fit: contain;
+                display: block;
+                margin: 0 auto 1mm auto;
+            }
+            .ticket-restaurant-name {
+                font-size: 11px;
+                font-weight: 700;
+                margin: 0;
+            }
+            .ticket-subtitle {
+                font-size: 9px;
+                margin: 1mm 0 0;
+            }
+            h4 {
+                font-size: 10px;
+                text-align: center;
+                color: #333;
+                border-bottom: 1px solid #ccc;
+                padding-bottom: 2px;
+                margin: 0 0 2mm 0;
+            }
+            p { margin: 1mm 0; font-size: 9px; }
+            pre {
+                white-space: pre-wrap;
+                word-break: break-word;
+                font-family: 'Courier New', Courier, monospace;
+                background-color: #f9f9f9;
+                padding: 2mm;
+                border: 1px solid #ddd;
+                border-radius: 2px;
+                font-size: 8.5px;
+                margin: 0 0 2mm 0;
+            }
+            .total-price {
+                font-weight: bold;
+                font-size: 10px;
+                text-align: right;
+                margin-top: 2mm;
+                padding-top: 2mm;
+                border-top: 1px dashed #ccc;
+            }
+            .users-roles-info { margin-top: 1mm; }
+            .user-info-row { font-size: 8px; }
+            .timestamp { font-size: 7.5px; color: #777; text-align: right; }
         `);
         printWindow.document.write('</style></head><body>');
-        printWindow.document.write(contentToPrint.innerHTML);
+        printWindow.document.write(buildTicketMarkup(contentToPrint.innerHTML, 'Orden'));
         printWindow.document.write('</body></html>');
         printWindow.document.close();
         printWindow.print();

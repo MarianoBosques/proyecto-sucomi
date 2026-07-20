@@ -172,6 +172,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const controlOrdersList = document.getElementById('controlOrdersList');
         // 💡 NUEVO: Referencia al nuevo botón de imprimir todo
         const printAllOrdersBtn = document.getElementById('printAllOrdersBtn');
+        const headerTextElement = document.getElementById('header-text');
+        const restaurantLogoImg = document.getElementById('restaurant-logo');
         if (printAllOrdersBtn) {
             printAllOrdersBtn.addEventListener('click', printAllOrders);
         }
@@ -184,7 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
         loadAdminAppearanceSettings(adminId);
 
         const mainHeader = document.getElementById('main-header');
-        const headerTextElement = document.getElementById('header-text');
 
         async function loadAdminAppearanceSettings(adminId) {
             try {
@@ -204,6 +205,24 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error("Error al cargar los ajustes de apariencia del admin:", error);
             }
+        }
+
+        function buildTicketMarkup(contentHtml, title = 'Orden') {
+            const restaurantName = headerTextElement?.textContent?.trim() || 'SUCOMI';
+            const logoUrl = restaurantLogoImg && restaurantLogoImg.src && restaurantLogoImg.style.display !== 'none'
+                ? restaurantLogoImg.src
+                : '';
+
+            return `
+                <div class="ticket-wrapper">
+                    <div class="ticket-header">
+                        ${logoUrl ? `<img src="${logoUrl}" alt="${restaurantName}" class="ticket-logo">` : ''}
+                        <h1 class="ticket-restaurant-name">${restaurantName}</h1>
+                        <p class="ticket-subtitle">${title}</p>
+                    </div>
+                    ${contentHtml}
+                </div>
+            `;
         }
 
         // --- Firebase Firestore Order Display Logic ---
@@ -339,29 +358,93 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         function printOrder(orderCardElement) {
-            // 💡 CORRECCIÓN: Clonamos el elemento para no modificar el original en la página.
             const contentToPrint = orderCardElement.cloneNode(true);
-
-            // Buscamos y eliminamos el contenedor de botones de acción en el clon.
             const actionsDiv = contentToPrint.querySelector('.order-actions');
             if (actionsDiv) {
                 actionsDiv.remove();
             }
 
             const printWindow = window.open('', '_blank');
-            printWindow.document.write('<html><head><title>Imprimir Orden</title>');
+            if (!printWindow) {
+                alert('Tu navegador bloqueó la ventana de impresión.');
+                return;
+            }
+
+            printWindow.document.write('<html><head><meta charset="utf-8"><title>Imprimir Orden</title>');
             printWindow.document.write('<style>');
             printWindow.document.write(`
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                h4 { font-size: 1.4em; text-align: center; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 15px; }
-                p { margin: 5px 0; }
-                .waiter-name { font-style: italic; color: #555; }
-                pre { white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-                .total-price { font-weight: bold; font-size: 1.2em; text-align: right; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; }
-                .timestamp, .completed-timestamp { font-size: 0.8em; color: #777; text-align: right; }
+                @page { size: 80mm auto; margin: 0; }
+                body {
+                    width: 80mm;
+                    max-width: 80mm;
+                    margin: 0;
+                    padding: 3mm;
+                    box-sizing: border-box;
+                    font-family: Arial, sans-serif;
+                    font-size: 10px;
+                    line-height: 1.25;
+                    color: #111;
+                }
+                .ticket-wrapper {
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+                .ticket-header {
+                    text-align: center;
+                    border-bottom: 1px dashed #000;
+                    padding-bottom: 3mm;
+                    margin-bottom: 3mm;
+                }
+                .ticket-logo {
+                    max-width: 36mm;
+                    max-height: 14mm;
+                    object-fit: contain;
+                    display: block;
+                    margin: 0 auto 1mm auto;
+                }
+                .ticket-restaurant-name {
+                    font-size: 11px;
+                    font-weight: 700;
+                    margin: 0;
+                }
+                .ticket-subtitle {
+                    font-size: 9px;
+                    margin: 1mm 0 0;
+                }
+                h4 {
+                    font-size: 10px;
+                    text-align: center;
+                    color: #333;
+                    border-bottom: 1px solid #ccc;
+                    padding-bottom: 2px;
+                    margin: 0 0 2mm 0;
+                }
+                p { margin: 1mm 0; font-size: 9px; }
+                pre {
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                    font-family: 'Courier New', Courier, monospace;
+                    background-color: #f9f9f9;
+                    padding: 2mm;
+                    border: 1px solid #ddd;
+                    border-radius: 2px;
+                    font-size: 8.5px;
+                    margin: 0 0 2mm 0;
+                }
+                .total-price {
+                    font-weight: bold;
+                    font-size: 10px;
+                    text-align: right;
+                    margin-top: 2mm;
+                    padding-top: 2mm;
+                    border-top: 1px dashed #ccc;
+                }
+                .users-roles-info { margin-top: 1mm; }
+                .user-info-row { font-size: 8px; }
+                .timestamp, .completed-timestamp { font-size: 7.5px; color: #777; text-align: right; }
             `);
             printWindow.document.write('</style></head><body>');
-            printWindow.document.write(contentToPrint.innerHTML);
+            printWindow.document.write(buildTicketMarkup(contentToPrint.innerHTML, 'Orden'));
             printWindow.document.write('</body></html>');
             printWindow.document.close();
             printWindow.print();
@@ -373,7 +456,6 @@ document.addEventListener('DOMContentLoaded', () => {
         function printAllOrders() {
             const orderCards = document.querySelectorAll('.order-card-control');
             const grandTotalText = document.getElementById('totalPaidAmount').textContent;
-            const headerText = document.getElementById('header-text').textContent;
 
             if (orderCards.length === 0) {
                 customAlert('No hay órdenes en pantalla para imprimir.', 'Aviso');
@@ -381,49 +463,100 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const printWindow = window.open('', '_blank');
-            printWindow.document.write('<html><head><title>Reporte de Órdenes</title>');
-            printWindow.document.write('<style>');
-            printWindow.document.write(`
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                .print-header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; }
-                .print-header h1 { margin: 0; }
-                .print-header p { margin: 5px 0 15px 0; font-size: 1.1em; }
-                .orders-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-                .order-card-print { border: 1px solid #ccc; border-radius: 8px; padding: 15px; page-break-inside: avoid; }
-                .order-card-print.paid { border-left: 5px solid #28a745; }
-                .order-card-print h4 { font-size: 1.2em; text-align: center; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-top: 0; }
-                .order-card-print p { margin: 4px 0; font-size: 0.9em; }
-                .order-card-print pre { white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; background-color: #f9f9f9; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9em; }
-                .order-card-print .total-price { font-weight: bold; text-align: right; margin-top: 10px; padding-top: 5px; border-top: 1px dashed #ccc; }
-                .grand-total-section { margin-top: 30px; padding-top: 20px; border-top: 2px double #000; text-align: center; }
-                .grand-total-section h2 { font-size: 1.5em; }
-                .grand-total-section p { font-size: 2em; font-weight: bold; margin: 0; }
-                @media print {
-                    .orders-grid { grid-template-columns: 1fr 1fr; } /* Mantiene dos columnas al imprimir */
-                }
-            `);
-            printWindow.document.write('</style></head><body>');
+            if (!printWindow) {
+                alert('Tu navegador bloqueó la ventana de impresión.');
+                return;
+            }
 
-            // Encabezado del reporte
-            printWindow.document.write(`<div class="print-header"><h1>${headerText}</h1><p>Reporte de Órdenes - ${new Date().toLocaleString()}</p></div>`);
-
-            // Contenedor de órdenes
-            printWindow.document.write('<div class="orders-grid">');
-            orderCards.forEach(card => {
+            const ordersMarkup = Array.from(orderCards).map(card => {
                 const cardClone = card.cloneNode(true);
                 const actionsDiv = cardClone.querySelector('.order-actions');
                 if (actionsDiv) actionsDiv.remove();
-                
+
                 const printCard = document.createElement('div');
                 printCard.className = `order-card-print ${card.classList.contains('paid') ? 'paid' : ''}`;
                 printCard.innerHTML = cardClone.innerHTML;
-                printWindow.document.write(printCard.outerHTML);
-            });
-            printWindow.document.write('</div>'); // Cierre de .orders-grid
+                return `<div class="print-card-wrapper">${printCard.outerHTML}</div>`;
+            }).join('');
 
-            // Sección del Total General
-            printWindow.document.write(`<div class="grand-total-section"><h2>Total General (Pagadas)</h2><p>${grandTotalText}</p></div>`);
+            const reportContent = `
+                <div class="report-print-content">
+                    <p class="report-print-date">Reporte de Órdenes - ${new Date().toLocaleString()}</p>
+                    <div class="orders-grid">${ordersMarkup}</div>
+                    <div class="grand-total-section">
+                        <h2>Total General (Pagadas)</h2>
+                        <p>${grandTotalText}</p>
+                    </div>
+                </div>
+            `;
 
+            printWindow.document.write('<html><head><meta charset="utf-8"><title>Reporte de Órdenes</title>');
+            printWindow.document.write('<style>');
+            printWindow.document.write(`
+                @page { size: 80mm auto; margin: 0; }
+                body {
+                    width: 80mm;
+                    max-width: 80mm;
+                    margin: 0;
+                    padding: 3mm;
+                    box-sizing: border-box;
+                    font-family: Arial, sans-serif;
+                    font-size: 10px;
+                    line-height: 1.25;
+                    color: #111;
+                }
+                .ticket-wrapper {
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+                .ticket-header {
+                    text-align: center;
+                    border-bottom: 1px dashed #000;
+                    padding-bottom: 3mm;
+                    margin-bottom: 3mm;
+                }
+                .ticket-logo {
+                    max-width: 36mm;
+                    max-height: 14mm;
+                    object-fit: contain;
+                    display: block;
+                    margin: 0 auto 1mm auto;
+                }
+                .ticket-restaurant-name {
+                    font-size: 11px;
+                    font-weight: 700;
+                    margin: 0;
+                }
+                .ticket-subtitle {
+                    font-size: 9px;
+                    margin: 1mm 0 0;
+                }
+                .report-print-content { width: 100%; }
+                .report-print-date { font-size: 8px; text-align: center; margin: 0 0 3mm 0; color: #555; }
+                .orders-grid { display: flex; flex-direction: column; gap: 3mm; }
+                .print-card-wrapper { width: 100%; }
+                .order-card-print { border: 1px solid #ccc; border-radius: 3px; padding: 2mm; page-break-inside: avoid; }
+                .order-card-print.paid { border-left: 3px solid #28a745; }
+                .order-card-print h4 { font-size: 10px; text-align: center; color: #333; border-bottom: 1px solid #eee; padding-bottom: 2px; margin-top: 0; }
+                .order-card-print p { margin: 1mm 0; font-size: 8.5px; }
+                .order-card-print pre {
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                    font-family: 'Courier New', Courier, monospace;
+                    background-color: #f9f9f9;
+                    padding: 2mm;
+                    border: 1px solid #ddd;
+                    border-radius: 2px;
+                    font-size: 8px;
+                    margin: 0 0 2mm 0;
+                }
+                .order-card-print .total-price { font-weight: bold; font-size: 9px; text-align: right; margin-top: 2mm; padding-top: 2mm; border-top: 1px dashed #ccc; }
+                .grand-total-section { margin-top: 4mm; padding-top: 3mm; border-top: 1px dashed #000; text-align: center; }
+                .grand-total-section h2 { font-size: 10px; margin: 0 0 1mm 0; }
+                .grand-total-section p { font-size: 11px; font-weight: bold; margin: 0; }
+            `);
+            printWindow.document.write('</style></head><body>');
+            printWindow.document.write(buildTicketMarkup(reportContent, 'Reporte de Órdenes'));
             printWindow.document.write('</body></html>');
             printWindow.document.close();
             printWindow.print();
