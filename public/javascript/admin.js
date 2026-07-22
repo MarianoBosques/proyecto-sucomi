@@ -1,9 +1,8 @@
 // admin.js
 
 // --- 1. Importaciones de tus archivos locales (INSTANCIAS de Firebase) ---
-import { auth, db, storage } from './auth/firebaseConfig.js';
+import { auth, db } from './auth/firebaseConfig.js';
 import { checkUserRole } from './utils/uiHelpers.js';
-import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 // Importamos las funciones de Firestore para la gestión del menú
 import {
     collection,
@@ -109,9 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const restaurantLogoImg = document.getElementById('restaurant-logo');
         const logoPreview = document.getElementById('logoPreview');
 
-        // Estado local persistente para el logotipo en la sesión del panel
-        let currentLogoUrl = null;
-
         // --- Debounce para no saturar Firestore con escrituras ---
         let debounceTimer;
         function debounce(func, delay) {
@@ -136,10 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        // Convertimos a WebP y resolvemos como Blob para subirlo a Storage
-                        canvas.toBlob((blob) => {
-                            resolve(blob);
-                        }, 'image/webp', 0.8);
+                        // Convertimos a WebP para máxima compresión
+                        resolve(canvas.toDataURL('image/webp', 0.8));
                     };
                 };
             });
@@ -155,47 +149,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async function applySettings(e) {
             const headerText = headerTextInput.value;
-            let logoChanged = false;
+            let logoUrl = restaurantLogoImg.src && restaurantLogoImg.style.display !== 'none' ? restaurantLogoImg.src : null;
 
             if (e && e.target.id === 'logoInput' && e.target.files[0]) {
-                const user = auth.currentUser;
-                if (!user) return;
+                logoUrl = await processLogo(e.target.files[0]);
+                restaurantLogoImg.src = logoUrl;
+                restaurantLogoImg.style.display = 'block';
                 
-                try {
-                    if (logoPreview) logoPreview.style.opacity = '0.5';
-                    
-                    const logoBlob = await processLogo(e.target.files[0]);
-                    
-                    // Crear una URL local temporal para la vista previa instantánea
-                    const localPreviewUrl = URL.createObjectURL(logoBlob);
-                    restaurantLogoImg.src = localPreviewUrl;
-                    restaurantLogoImg.style.display = 'block';
-                    if (logoPreview) {
-                        logoPreview.src = localPreviewUrl;
-                        logoPreview.style.display = 'block';
-                        logoPreview.style.opacity = '1';
-                    }
-
-                    // Subir a Firebase Storage
-                    const storageRef = ref(storage, `logos/${user.uid}/logo.webp`);
-                    await uploadBytes(storageRef, logoBlob);
-                    
-                    // Obtener URL de descarga real
-                    currentLogoUrl = await getDownloadURL(storageRef);
-                    logoChanged = true;
-                    console.log("Logotipo subido exitosamente a Storage:", currentLogoUrl);
-                } catch (err) {
-                    console.error("Error al procesar/subir logotipo:", err);
-                    alert("Error al subir el logotipo: " + err.message);
-                    if (logoPreview) logoPreview.style.opacity = '1';
-                    return;
+                if (logoPreview) {
+                    logoPreview.src = logoUrl;
+                    logoPreview.style.display = 'block';
                 }
             }
 
-            // Solo incluir logoUrl en settings si la imagen fue modificada
             const settings = {
                 headerText,
-                ...(logoChanged && { logoUrl: currentLogoUrl })
+                logoUrl
             };
 
             if (headerTextElement) {
@@ -220,16 +189,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     headerTextElement.textContent = settings.headerText;
                     if (headerTextInput) headerTextInput.value = settings.headerText;
                 }
-                if (settings.logoUrl) {
-                    currentLogoUrl = settings.logoUrl;
-                    if (restaurantLogoImg) {
-                        restaurantLogoImg.src = settings.logoUrl;
-                        restaurantLogoImg.style.display = 'block';
-                    }
-                    if (logoPreview) {
-                        logoPreview.src = settings.logoUrl;
-                        logoPreview.style.display = 'block';
-                    }
+                if (settings.logoUrl && restaurantLogoImg) {
+                    restaurantLogoImg.src = settings.logoUrl;
+                    restaurantLogoImg.style.display = 'block';
+                }
+                if (settings.logoUrl && logoPreview) {
+                    logoPreview.src = settings.logoUrl;
+                    logoPreview.style.display = 'block';
                 }
             } else if (headerTextElement && headerTextInput) {
                 headerTextInput.value = headerTextElement.textContent;
