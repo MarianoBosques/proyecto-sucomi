@@ -15,6 +15,10 @@ import {
     getFunctions, 
     connectFunctionsEmulator 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
+import { 
+  getStorage, 
+  connectStorageEmulator 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 
 // Tu configuración de Firebase
@@ -32,6 +36,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const functions = getFunctions(app);
+const storage = getStorage(app);
 
 // ----------------------------------------------------
 // 💡 CONFIGURACIÓN DEL EMULADOR (SOLO PARA DESARROLLO)
@@ -49,6 +54,9 @@ if (window.location.hostname === "localhost" || window.location.hostname === "12
   // 💡 Conectar Functions al emulador local
   // La conexión a 'localhost:5001' es la que redirigirá las llamadas a la función local.
   connectFunctionsEmulator(functions, "localhost", 5001); 
+
+  // Conectar Storage al emulador local
+  connectStorageEmulator(storage, "localhost", 9199);
 }
 // ----------------------------------------------------
 
@@ -63,6 +71,7 @@ export {
   auth,
   db,
   functions, // <--- Importante: Exportar la instancia 'functions'
+  storage,   // <--- Importante: Exportar la instancia 'storage'
   googleProvider,
   facebookProvider
 };

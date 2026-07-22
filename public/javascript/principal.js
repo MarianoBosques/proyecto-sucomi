@@ -1,5 +1,6 @@
-import { auth } from './auth/firebaseConfig.js';
+import { auth, db } from './auth/firebaseConfig.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const userIcon = document.getElementById('userIcon');
 const userSubmenu = document.getElementById('userSubmenu');
@@ -30,12 +31,53 @@ document.addEventListener('click', (event) => {
 });
 
 // --- Lógica de Autenticación Firebase para el Menú de Usuario ---
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) { // Si hay un usuario autenticado en Firebase...
-        // Leemos los datos guardados en sessionStorage durante el login.
+        let userData = null;
         const userDataString = sessionStorage.getItem('user');
+        
         if (userDataString) {
-            const userData = JSON.parse(userDataString);
+            userData = JSON.parse(userDataString);
+        } else {
+            console.log("Reconstruyendo sesión en sessionStorage...");
+            try {
+                const tokenResult = await user.getIdTokenResult(true);
+                const claims = tokenResult.claims;
+                let role = claims.role || 'administrador';
+                let adminId = user.uid;
+                let displayName = user.displayName || user.email;
+
+                if (role === 'administrador') {
+                    const userDocRef = doc(db, 'users', user.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+                    if (userDocSnap.exists()) {
+                        const data = userDocSnap.data();
+                        if (data.displayName) displayName = data.displayName;
+                    }
+                } else if (claims.adminId) {
+                    adminId = claims.adminId;
+                    const employeeDocRef = doc(db, 'users', adminId, 'empleados', user.uid);
+                    const employeeDocSnap = await getDoc(employeeDocRef);
+                    if (employeeDocSnap.exists()) {
+                        const data = employeeDocSnap.data();
+                        if (data.displayName) displayName = data.displayName;
+                    }
+                }
+
+                userData = {
+                    uid: user.uid,
+                    email: user.email,
+                    name: displayName,
+                    role: role,
+                    adminId: adminId
+                };
+                sessionStorage.setItem('user', JSON.stringify(userData));
+            } catch (error) {
+                console.error("Error al reconstruir la sesión en principal.js:", error);
+            }
+        }
+
+        if (userData) {
             // Usamos los datos de sessionStorage que son más completos.
             userNameSpan.textContent = userData.name || 'Usuario';
             userEmailSpan.textContent = userData.email || 'No disponible';
@@ -44,10 +86,6 @@ onAuthStateChanged(auth, (user) => {
             userIcon.style.pointerEvents = 'auto';
             userIcon.style.opacity = '1';
             userIcon.addEventListener('click', toggleSubmenu);
-        } else {
-            // Estado inconsistente: sesión de Firebase activa pero sin datos en sessionStorage.
-            // Mantenemos el icono deshabilitado para evitar errores y forzar un nuevo login.
-            console.warn("Sesión de Firebase activa pero sin datos en sessionStorage.");
         }
     } else {
         // No hay usuario logueado: el icono permanece inactivo y el listener no se añade.
