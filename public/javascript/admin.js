@@ -109,6 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const restaurantLogoImg = document.getElementById('restaurant-logo');
         const logoPreview = document.getElementById('logoPreview');
 
+        // Estado local persistente para el logotipo en la sesión del panel
+        let currentLogoUrl = null;
+
         // --- Debounce para no saturar Firestore con escrituras ---
         let debounceTimer;
         function debounce(func, delay) {
@@ -152,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async function applySettings(e) {
             const headerText = headerTextInput.value;
-            let logoUrl = restaurantLogoImg.src && restaurantLogoImg.style.display !== 'none' && !restaurantLogoImg.src.startsWith('data:') && !restaurantLogoImg.src.startsWith('blob:') ? restaurantLogoImg.src : null;
 
             if (e && e.target.id === 'logoInput' && e.target.files[0]) {
                 const user = auth.currentUser;
@@ -178,8 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     await uploadBytes(storageRef, logoBlob);
                     
                     // Obtener URL de descarga real
-                    logoUrl = await getDownloadURL(storageRef);
-                    console.log("Logotipo subido exitosamente a Storage:", logoUrl);
+                    currentLogoUrl = await getDownloadURL(storageRef);
+                    console.log("Logotipo subido exitosamente a Storage:", currentLogoUrl);
                 } catch (err) {
                     console.error("Error al procesar/subir logotipo:", err);
                     alert("Error al subir el logotipo: " + err.message);
@@ -190,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const settings = {
                 headerText,
-                logoUrl
+                logoUrl: currentLogoUrl
             };
 
             if (headerTextElement) {
@@ -215,13 +217,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     headerTextElement.textContent = settings.headerText;
                     if (headerTextInput) headerTextInput.value = settings.headerText;
                 }
-                if (settings.logoUrl && restaurantLogoImg) {
-                    restaurantLogoImg.src = settings.logoUrl;
-                    restaurantLogoImg.style.display = 'block';
-                }
-                if (settings.logoUrl && logoPreview) {
-                    logoPreview.src = settings.logoUrl;
-                    logoPreview.style.display = 'block';
+                if (settings.logoUrl) {
+                    currentLogoUrl = settings.logoUrl;
+                    if (restaurantLogoImg) {
+                        restaurantLogoImg.src = settings.logoUrl;
+                        restaurantLogoImg.style.display = 'block';
+                    }
+                    if (logoPreview) {
+                        logoPreview.src = settings.logoUrl;
+                        logoPreview.style.display = 'block';
+                    }
                 }
             } else if (headerTextElement && headerTextInput) {
                 headerTextInput.value = headerTextElement.textContent;
