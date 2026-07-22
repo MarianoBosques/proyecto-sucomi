@@ -155,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async function applySettings(e) {
             const headerText = headerTextInput.value;
+            let logoChanged = false;
 
             if (e && e.target.id === 'logoInput' && e.target.files[0]) {
                 const user = auth.currentUser;
@@ -181,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Obtener URL de descarga real
                     currentLogoUrl = await getDownloadURL(storageRef);
+                    logoChanged = true;
                     console.log("Logotipo subido exitosamente a Storage:", currentLogoUrl);
                 } catch (err) {
                     console.error("Error al procesar/subir logotipo:", err);
@@ -190,9 +192,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            // Solo incluir logoUrl en settings si la imagen fue modificada
             const settings = {
                 headerText,
-                logoUrl: currentLogoUrl
+                ...(logoChanged && { logoUrl: currentLogoUrl })
             };
 
             if (headerTextElement) {
