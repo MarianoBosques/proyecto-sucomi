@@ -25,45 +25,30 @@ export async function checkUserRole(auth, db, expectedRole, redirectLoginUrl = '
                 
                 let adminId = user.uid;
                 let role = claims.role;
-                let displayName = user.displayName || user.email;
 
                 if (expectedRole === 'administrador') {
-                    // Obtener datos del administrador directamente de Firestore para reconstruir el displayName y rol si es necesario
-                    const userDocRef = doc(db, 'users', user.uid);
-                    const userDocSnap = await getDoc(userDocRef);
-                    if (userDocSnap.exists()) {
-                        const data = userDocSnap.data();
-                        if (data.role === 'administrador') {
+                    if (role !== 'administrador') {
+                        // Respaldo en Firestore si los claims aún no se han propagado tras el registro
+                        const userDocRef = doc(db, 'users', user.uid);
+                        const userDocSnap = await getDoc(userDocRef);
+                        if (userDocSnap.exists() && userDocSnap.data().role === 'administrador') {
                             role = 'administrador';
+                        } else {
+                            throw new Error('Acceso denegado. No tienes permisos de administrador.');
                         }
-                        if (data.displayName) {
-                            displayName = data.displayName;
-                        }
-                    } else if (role !== 'administrador') {
-                        throw new Error('Acceso denegado. No tienes permisos de administrador.');
                     }
                 } else {
                     if (role !== expectedRole || !claims.adminId) {
                         throw new Error(`Acceso denegado. Se requiere rol de '${expectedRole}' y vinculación de administrador.`);
                     }
                     adminId = claims.adminId;
-
-                    // Obtener el displayName real del empleado desde Firestore
-                    const employeeDocRef = doc(db, 'users', adminId, 'empleados', user.uid);
-                    const employeeDocSnap = await getDoc(employeeDocRef);
-                    if (employeeDocSnap.exists()) {
-                        const data = employeeDocSnap.data();
-                        if (data.displayName) {
-                            displayName = data.displayName;
-                        }
-                    }
                 }
 
                 // Sincronizar sessionStorage para uso cosmético en la interfaz (nombre, correo)
                 const updatedUser = {
                     uid: user.uid,
                     email: user.email,
-                    name: displayName,
+                    name: user.displayName || user.email,
                     role: role,
                     adminId: adminId
                 };
