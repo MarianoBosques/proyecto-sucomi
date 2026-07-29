@@ -2,11 +2,10 @@
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-admin.initializeApp();
-
-// 💡 IMPORTACIONES DE GEN2 
+const {onUserCreated} = require("firebase-functions/v2/auth");
 const {onCall} = require("firebase-functions/v2/https");
 const {setGlobalOptions} = require("firebase-functions/v2");
+admin.initializeApp();
 
 // 💡 CONFIGURACIÓN GLOBAL DE GEN2 
 setGlobalOptions({
@@ -15,90 +14,81 @@ setGlobalOptions({
 });
 
 // ====================================================================
-// FUNCIÓN 1: assignUserRole (GEN1) - MODIFICADA
+// FUNCIÓN 1: assignUserRole (GEN2)
 // ====================================================================
-exports.assignUserRole = functions
-    .runWith({runtime: "nodejs18"})
-    .auth.user()
-    .onCreate(async (user) => { 
-      if (!user || !user.uid) {
-        console.error(
-            "Error: El objeto de usuario es nulo o indefinido, " +
-            "o falta el UID.",
-        );
-        return null;
-      }
+exports.assignUserRole = onUserCreated(async (event) => {
+  const user = event.data;
+  if (!user || !user.uid) {
+    console.error(
+        "Error: El objeto de usuario es nulo o indefinido, " +
+        "o falta el UID.",
+    );
+    return null;
+  }
 
-      console.log(
-          `Cloud Function activada para el usuario: ${user.uid}`,
-      );
-      console.log(
-          `Correo electrónico del usuario: ${user.email || "N/A"}`,
-      );
+  console.log(
+      `Cloud Function activada para el usuario: ${user.uid}`,
+  );
+  console.log(
+      `Correo electrónico del usuario: ${user.email || "N/A"}`,
+  );
 
-      // 💡 CORRECCIÓN CLAVE:
-      // La función `registrarEmpleado_v2` ahora crea al empleado con un displayName
-      // temporal: `__SUCOMI_EMPLOYEE__`. Si este `displayName` está presente,
-      // significa que el usuario es un empleado siendo creado por un admin.
-      // En ese caso, esta función `assignUserRole` debe ignorarlo y no hacer nada,
-      // ya que `registrarEmpleado_v2` se encargará de todo (asignar rol,
-      // nombre final y crear documento).
-      if (user.displayName === "__SUCOMI_EMPLOYEE__") {
-        console.log(`Usuario ${user.uid} identificado como empleado. 'assignUserRole' no tomará acción.`);
-        return null;
-      }
-      const userRecord = await admin.auth().getUser(user.uid);
-      if (userRecord.customClaims && userRecord.customClaims.role) {
-        console.log(`El usuario ${user.uid} ya tiene el rol '${userRecord.customClaims.role}'. La función assignUserRole no hará nada.`);
-        return null;
-      }
+  // 💡 CORRECCIÓN CLAVE:
+  // La función `registrarEmpleado_v2` ahora crea al empleado con un displayName
+  // temporal: `__SUCOMI_EMPLOYEE__`. Si este `displayName` está presente,
+  // significa que el usuario es un empleado siendo creado por un admin.
+  // En ese caso, esta función `assignUserRole` debe ignorarlo y no hacer nada,
+  // ya que `registrarEmpleado_v2` se encargará de todo.
+  if (user.displayName === "__SUCOMI_EMPLOYEE__") {
+    console.log(`Usuario ${user.uid} identificado como empleado. 'assignUserRole' no tomará acción.`);
+    return null;
+  }
 
-      const db = admin.firestore();
-      const userRef = db.collection("users").doc(user.uid);
+  const userRecord = await admin.auth().getUser(user.uid);
+  if (userRecord.customClaims && userRecord.customClaims.role) {
+    console.log(`El usuario ${user.uid} ya tiene el rol '${userRecord.customClaims.role}'. La función assignUserRole no hará nada.`);
+    return null;
+  }
 
-      try {
-        // 💡 CORRECCIÓN: Cualquier usuario creado a través de este trigger
-        // será un administrador. La creación de empleados se maneja por
-        // la función 'registrarEmpleado_v2'.
-        const userRole = "administrador";
+  const db = admin.firestore();
+  const userRef = db.collection("users").doc(user.uid);
 
-        console.log(
-            `Asignando rol de '${userRole}' al usuario ${user.uid}.`,
-        );
+  try {
+    const userRole = "administrador";
 
-        // Crear el documento del administrador en la colección 'users'.
-        // El 'displayName' ya fue establecido en el cliente por 'updateProfile'.
-        // La función lo leerá desde el objeto de autenticación.
-        const dataToSet = {
-          email: user.email || "",
-          displayName: user.displayName || user.email.split("@")[0], // Fallback por si acaso
-          role: userRole,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          lastLogin: admin.firestore.FieldValue.serverTimestamp(),
-          empleados: [], // Inicializa el array de empleados para el Admin
-        };
+    console.log(
+        `Asignando rol de '${userRole}' al usuario ${user.uid}.`,
+    );
 
-        await userRef.set(dataToSet, {merge: true});
+    const dataToSet = {
+      email: user.email || "",
+      displayName: user.displayName || user.email.split("@")[0],
+      role: userRole,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+      empleados: [],
+    };
 
-        console.log(
-            `Documento de Administrador creado para ${user.uid}.`,
-        );
+    await userRef.set(dataToSet, {merge: true});
 
-        // Asignar el Custom Claim para el control de acceso.
-        await admin.auth().setCustomUserClaims(user.uid, {role: userRole});
-        console.log(
-            `Custom Claim '{ role: "${userRole}" }' establecido para ${user.uid}.`,
-        );
+    console.log(
+        `Documento de Administrador creado para ${user.uid}.`,
+    );
 
-        return null;
-      } catch (error) {
-        console.error(
-            `Error en assignUserRole para el usuario ${user.uid}:`,
-            error,
-        );
-        return null;
-      }
-    });
+    await admin.auth().setCustomUserClaims(user.uid, {role: userRole});
+    console.log(
+        `Custom Claim '{ role: "${userRole}" }' establecido para ${user.uid}.`,
+    );
+
+    return null;
+  } catch (error) {
+    console.error(
+        `Error en assignUserRole para el usuario ${user.uid}:`,
+        error,
+    );
+    return null;
+  }
+});
 
 
 // ================================================
