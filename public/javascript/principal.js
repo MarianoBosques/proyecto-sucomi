@@ -32,23 +32,36 @@ document.addEventListener('click', (event) => {
 // --- Lógica de Autenticación Firebase para el Menú de Usuario ---
 onAuthStateChanged(auth, (user) => {
     if (user) { // Si hay un usuario autenticado en Firebase...
-        // Leemos los datos guardados en sessionStorage durante el login.
+        // Usar sessionStorage solo como datos de presentación opcionales.
         const userDataString = sessionStorage.getItem('user');
-        if (userDataString) {
-            const userData = JSON.parse(userDataString);
-            // Usamos los datos de sessionStorage que son más completos.
-            userNameSpan.textContent = userData.name || 'Usuario';
-            userEmailSpan.textContent = userData.email || 'No disponible';
+        let name = user.displayName || user.email || 'Usuario';
+        let email = user.email || 'No disponible';
 
-            // Habilitamos la funcionalidad del icono
-            userIcon.style.pointerEvents = 'auto';
-            userIcon.style.opacity = '1';
-            userIcon.addEventListener('click', toggleSubmenu);
-        } else {
-            // Estado inconsistente: sesión de Firebase activa pero sin datos en sessionStorage.
-            // Mantenemos el icono deshabilitado para evitar errores y forzar un nuevo login.
-            console.warn("Sesión de Firebase activa pero sin datos en sessionStorage.");
+        if (userDataString) {
+            try {
+                const userData = JSON.parse(userDataString);
+                name = userData.name || name;
+                email = userData.email || email;
+            } catch (error) {
+                console.warn('No se pudo leer sessionStorage:', error);
+            }
         }
+
+        userNameSpan.textContent = name;
+        userEmailSpan.textContent = email;
+
+        // Mantener una copia de los datos para garantizar consistencia si faltan.
+        sessionStorage.setItem('user', JSON.stringify({
+            uid: user.uid,
+            email: user.email,
+            name: user.displayName || user.email,
+        }));
+
+        // Habilitamos la funcionalidad del icono
+        userIcon.style.pointerEvents = 'auto';
+        userIcon.style.opacity = '1';
+        userIcon.addEventListener('click', toggleSubmenu);
+    } else {
     } else {
         // No hay usuario logueado: el icono permanece inactivo y el listener no se añade.
         // Podrías redirigir a login.html aquí si esta página siempre debe ser privada.

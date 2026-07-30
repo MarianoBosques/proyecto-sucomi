@@ -2,11 +2,55 @@
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-admin.initializeApp();
-
-// 💡 IMPORTACIONES DE GEN2 
+const {onUserCreated} = require("firebase-functions/v2/auth");
 const {onCall} = require("firebase-functions/v2/https");
 const {setGlobalOptions} = require("firebase-functions/v2");
+
+const APP_CONSTANTS = {
+  COLLECTIONS: {
+    USERS: "users",
+    EMPLEADOS: "empleados",
+    REPORTS: "reports",
+    ORDERS: "orders",
+  },
+  ROLES: {
+    ADMIN: "administrador",
+    CHEF: "chef",
+    WAITER: "mesero",
+  },
+  ORDER_STATUS: {
+    PAID: "paid",
+  },
+  TEMP_DISPLAY_NAME: "__SUCOMI_EMPLOYEE__",
+  ARCHIVE_PAGE_SIZE: 200,
+  FIRESTORE_BATCH_LIMIT: 450,
+};
+
+const deleteCollectionInBatches = async (collectionRef, pageSize = APP_CONSTANTS.ARCHIVE_PAGE_SIZE) => {
+  let lastDoc = null;
+  while (true) {
+    let query = collectionRef.orderBy("__name__").limit(pageSize);
+    if (lastDoc) {
+      query = query.startAfter(lastDoc);
+    }
+
+    const snapshot = await query.get();
+    if (snapshot.empty) {
+      break;
+    }
+
+    const batch = admin.firestore().batch();
+    snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
+
+    if (snapshot.size < pageSize) {
+      break;
+    }
+    lastDoc = snapshot.docs[snapshot.docs.length - 1];
+  }
+};
+
+admin.initializeApp();
 
 // 💡 CONFIGURACIÓN GLOBAL DE GEN2 
 setGlobalOptions({
@@ -15,90 +59,79 @@ setGlobalOptions({
 });
 
 // ====================================================================
-// FUNCIÓN 1: assignUserRole (GEN1) - MODIFICADA
+// FUNCIÓN 1: assignUserRole (GEN2)
 // ====================================================================
-exports.assignUserRole = functions
-    .runWith({runtime: "nodejs18"})
-    .auth.user()
-    .onCreate(async (user) => { 
-      if (!user || !user.uid) {
-        console.error(
-            "Error: El objeto de usuario es nulo o indefinido, " +
-            "o falta el UID.",
-        );
-        return null;
-      }
+exports.assignUserRole = onUserCreated(async (event) => {
+  const user = event.data;
+  if (!user || !user.uid) {
+    console.error(
+        "Error: El objeto de usuario es nulo o indefinido, " +
+        "o falta el UID.",
+    );
+    return null;
+  }
 
-      console.log(
-          `Cloud Function activada para el usuario: ${user.uid}`,
-      );
-      console.log(
-          `Correo electrónico del usuario: ${user.email || "N/A"}`,
-      );
+  console.log(
+      `Cloud Function activada para el usuario: ${user.uid}`,
+  );
+  console.log(
+      `Correo electrónico del usuario: ${user.email || "N/A"}`,
+  );
 
-      // 💡 CORRECCIÓN CLAVE:
-      // La función `registrarEmpleado_v2` ahora crea al empleado con un displayName
-      // temporal: `__SUCOMI_EMPLOYEE__`. Si este `displayName` está presente,
-      // significa que el usuario es un empleado siendo creado por un admin.
-      // En ese caso, esta función `assignUserRole` debe ignorarlo y no hacer nada,
-      // ya que `registrarEmpleado_v2` se encargará de todo (asignar rol,
-      // nombre final y crear documento).
-      if (user.displayName === "__SUCOMI_EMPLOYEE__") {
-        console.log(`Usuario ${user.uid} identificado como empleado. 'assignUserRole' no tomará acción.`);
-        return null;
-      }
-      const userRecord = await admin.auth().getUser(user.uid);
-      if (userRecord.customClaims && userRecord.customClaims.role) {
-        console.log(`El usuario ${user.uid} ya tiene el rol '${userRecord.customClaims.role}'. La función assignUserRole no hará nada.`);
-        return null;
-      }
+  // 💡 CORRECCIÓN CLAVE:
+  // La función `registrarEmpleado_v2` crea al empleado con un displayName temporal.
+  // Si este displayName está presente, significa que el usuario fue creado internamente
+  // y `assignUserRole` no debe intervenir.
+  if (user.displayName === APP_CONSTANTS.TEMP_DISPLAY_NAME) {
+    console.log(`Usuario ${user.uid} identificado como empleado. 'assignUserRole' no tomará acción.`);
+    return null;
+  }
 
-      const db = admin.firestore();
-      const userRef = db.collection("users").doc(user.uid);
+  const userRecord = await admin.auth().getUser(user.uid);
+  if (userRecord.customClaims && userRecord.customClaims.role) {
+    console.log(`El usuario ${user.uid} ya tiene el rol '${userRecord.customClaims.role}'. La función assignUserRole no hará nada.`);
+    return null;
+  }
 
-      try {
-        // 💡 CORRECCIÓN: Cualquier usuario creado a través de este trigger
-        // será un administrador. La creación de empleados se maneja por
-        // la función 'registrarEmpleado_v2'.
-        const userRole = "administrador";
+  const db = admin.firestore();
+  const userRef = db.collection(APP_CONSTANTS.COLLECTIONS.USERS).doc(user.uid);
 
-        console.log(
-            `Asignando rol de '${userRole}' al usuario ${user.uid}.`,
-        );
+  try {
+    const userRole = APP_CONSTANTS.ROLES.ADMIN;
 
-        // Crear el documento del administrador en la colección 'users'.
-        // El 'displayName' ya fue establecido en el cliente por 'updateProfile'.
-        // La función lo leerá desde el objeto de autenticación.
-        const dataToSet = {
-          email: user.email || "",
-          displayName: user.displayName || user.email.split("@")[0], // Fallback por si acaso
-          role: userRole,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          lastLogin: admin.firestore.FieldValue.serverTimestamp(),
-          empleados: [], // Inicializa el array de empleados para el Admin
-        };
+    console.log(
+        `Asignando rol de '${userRole}' al usuario ${user.uid}.`,
+    );
 
-        await userRef.set(dataToSet, {merge: true});
+    const dataToSet = {
+      email: user.email || "",
+      displayName: user.displayName || user.email.split("@")[0],
+      role: userRole,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+      empleados: [],
+    };
 
-        console.log(
-            `Documento de Administrador creado para ${user.uid}.`,
-        );
+    await userRef.set(dataToSet, {merge: true});
 
-        // Asignar el Custom Claim para el control de acceso.
-        await admin.auth().setCustomUserClaims(user.uid, {role: userRole});
-        console.log(
-            `Custom Claim '{ role: "${userRole}" }' establecido para ${user.uid}.`,
-        );
+    console.log(
+        `Documento de Administrador creado para ${user.uid}.`,
+    );
 
-        return null;
-      } catch (error) {
-        console.error(
-            `Error en assignUserRole para el usuario ${user.uid}:`,
-            error,
-        );
-        return null;
-      }
-    });
+    await admin.auth().setCustomUserClaims(user.uid, {role: userRole});
+    console.log(
+        `Custom Claim '{ role: "${userRole}" }' establecido para ${user.uid}.`,
+    );
+
+    return null;
+  } catch (error) {
+    console.error(
+        `Error en assignUserRole para el usuario ${user.uid}:`,
+        error,
+    );
+    return null;
+  }
+});
 
 
 // ================================================
@@ -112,7 +145,7 @@ exports.registrarEmpleado_v2 = onCall(async (request) => {
   const db = admin.firestore();
 
   // 1. Verificación de administrador
-  if (!context || context.token.role !== "administrador") {
+  if (!context || context.token.role !== APP_CONSTANTS.ROLES.ADMIN) {
     throw new functions.https.HttpsError(
         "permission-denied",
         "Solo los administradores pueden registrar nuevos usuarios.",
@@ -136,7 +169,7 @@ exports.registrarEmpleado_v2 = onCall(async (request) => {
       email: email,
       password: password,
       // 💡 CAMBIO: Se crea con un nombre temporal para que el trigger `assignUserRole` lo ignore.
-      displayName: "__SUCOMI_EMPLOYEE__",
+      displayName: APP_CONSTANTS.TEMP_DISPLAY_NAME,
     });
 
     const employeeUid = userRecord.uid;
@@ -153,9 +186,9 @@ exports.registrarEmpleado_v2 = onCall(async (request) => {
     });
 
     // 5. Guardar el documento del empleado en la subcolección
-    const employeeDocRef = db.collection("users")
+    const employeeDocRef = db.collection(APP_CONSTANTS.COLLECTIONS.USERS)
         .doc(adminId)
-        .collection("empleados")
+        .collection(APP_CONSTANTS.COLLECTIONS.EMPLEADOS)
         .doc(employeeUid);
 
     await employeeDocRef.set({
@@ -200,7 +233,7 @@ exports.eliminarEmpleado_v2 = onCall(async (request) => {
   const data = request.data;
   const db = admin.firestore();
 
-  if (!context || context.token.role !== "administrador") {
+  if (!context || context.token.role !== APP_CONSTANTS.ROLES.ADMIN) {
     throw new functions.https.HttpsError(
         "permission-denied",
         "Solo los administradores pueden eliminar empleados.",
@@ -224,11 +257,11 @@ exports.eliminarEmpleado_v2 = onCall(async (request) => {
     );
   }
 
-  const employeeDocRef = db.collection("users")
+  const employeeDocRef = db.collection(APP_CONSTANTS.COLLECTIONS.USERS)
       .doc(adminId)
-      .collection("empleados")
+      .collection(APP_CONSTANTS.COLLECTIONS.EMPLEADOS)
       .doc(employeeId);
-  const adminDocRef = db.collection("users").doc(adminId);
+  const adminDocRef = db.collection(APP_CONSTANTS.COLLECTIONS.USERS).doc(adminId);
 
   try {
     const employeeDoc = await employeeDocRef.get();
@@ -243,7 +276,7 @@ exports.eliminarEmpleado_v2 = onCall(async (request) => {
     try {
       const userRecord = await admin.auth().getUser(employeeId);
       const claims = userRecord.customClaims || {};
-      const isEmployee = claims.role === "chef" || claims.role === "mesero";
+      const isEmployee = claims.role === APP_CONSTANTS.ROLES.CHEF || claims.role === APP_CONSTANTS.ROLES.WAITER;
 
       if (!isEmployee || claims.adminId !== adminId) {
         throw new functions.https.HttpsError(
@@ -289,7 +322,7 @@ exports.archiveOrders = onCall(async (request) => {
   const db = admin.firestore();
 
   // 1. Verificación de administrador
-  if (!context || context.token.role !== "administrador") {
+  if (!context || context.token.role !== APP_CONSTANTS.ROLES.ADMIN) {
     throw new functions.https.HttpsError(
         "permission-denied",
         "Solo los administradores pueden archivar órdenes.",
@@ -300,7 +333,7 @@ exports.archiveOrders = onCall(async (request) => {
   let {reportName, reportId, orderId} = data;
 
   // 2. Lógica para crear o usar un reporte existente
-  const reportsRef = db.collection("users").doc(adminId).collection("reports");
+  const reportsRef = db.collection(APP_CONSTANTS.COLLECTIONS.USERS).doc(adminId).collection(APP_CONSTANTS.COLLECTIONS.REPORTS);
   let targetReportRef;
 
   if (reportId) {
@@ -330,8 +363,10 @@ exports.archiveOrders = onCall(async (request) => {
   }
 
   // 3. Obtener las órdenes a archivar
-  const ordersToArchiveRef = db.collection("users").doc(adminId).collection("orders");
-  let ordersSnapshot;
+  const ordersToArchiveRef = db.collection(APP_CONSTANTS.COLLECTIONS.USERS).doc(adminId).collection(APP_CONSTANTS.COLLECTIONS.ORDERS);
+  const ordersInReportRef = targetReportRef.collection(APP_CONSTANTS.COLLECTIONS.ORDERS);
+  let newOrdersCount = 0;
+  let newTotalPaidAmount = 0;
 
   if (orderId) {
     // Archivar una sola orden
@@ -339,57 +374,76 @@ exports.archiveOrders = onCall(async (request) => {
     if (!singleOrderSnap.exists) {
       throw new functions.https.HttpsError("not-found", "La orden a archivar no fue encontrada.");
     }
-    ordersSnapshot = {docs: [singleOrderSnap], empty: false};
-  } else {
-    // Archivar todas las órdenes
-    ordersSnapshot = await ordersToArchiveRef.get();
+
+    const orderData = singleOrderSnap.data();
+    const batch = db.batch();
+    const newOrderInReportRef = ordersInReportRef.doc(singleOrderSnap.id);
+
+    batch.set(newOrderInReportRef, orderData);
+    newOrdersCount = 1;
+    if (orderData.status === APP_CONSTANTS.ORDER_STATUS.PAID) {
+      newTotalPaidAmount = parseFloat(orderData.total || 0);
+    }
+
+    batch.update(targetReportRef, {
+      ordersCount: admin.firestore.FieldValue.increment(newOrdersCount),
+      totalPaidAmount: admin.firestore.FieldValue.increment(newTotalPaidAmount),
+    });
+
+    await batch.commit();
+    return {
+      message: `Orden guardada exitosamente en el reporte '${reportName}'.`,
+    };
   }
 
-  if (ordersSnapshot.empty) {
+  // Archivar todas las órdenes en páginas para evitar límites de batch y de memoria.
+  let lastDoc = null;
+  while (true) {
+    let pageQuery = ordersToArchiveRef.orderBy("__name__").limit(APP_CONSTANTS.ARCHIVE_PAGE_SIZE);
+    if (lastDoc) {
+      pageQuery = pageQuery.startAfter(lastDoc);
+    }
+
+    const pageSnapshot = await pageQuery.get();
+    if (pageSnapshot.empty) {
+      break;
+    }
+
+    const batch = db.batch();
+    pageSnapshot.docs.forEach((doc) => {
+      const orderData = doc.data();
+      const newOrderInReportRef = ordersInReportRef.doc(doc.id);
+
+      batch.set(newOrderInReportRef, orderData);
+      batch.delete(doc.ref);
+
+      newOrdersCount++;
+      if (orderData.status === APP_CONSTANTS.ORDER_STATUS.PAID) {
+        newTotalPaidAmount += parseFloat(orderData.total || 0);
+      }
+    });
+
+    await batch.commit();
+
+    if (pageSnapshot.size < APP_CONSTANTS.ARCHIVE_PAGE_SIZE) {
+      break;
+    }
+
+    lastDoc = pageSnapshot.docs[pageSnapshot.docs.length - 1];
+  }
+
+  if (newOrdersCount === 0) {
     return {message: "No hay órdenes para archivar."};
   }
 
-  // 4. Proceso de archivado en lotes (batch)
-  const batch = db.batch();
-  const ordersInReportRef = targetReportRef.collection("orders");
-  let newOrdersCount = 0;
-  let newTotalPaidAmount = 0;
-
-  ordersSnapshot.docs.forEach((doc) => {
-    const orderData = doc.data();
-    const newOrderInReportRef = ordersInReportRef.doc(doc.id);
-
-    // Copiar la orden al reporte
-    batch.set(newOrderInReportRef, orderData);
-    newOrdersCount++;
-    if (orderData.status === "paid") {
-      newTotalPaidAmount += parseFloat(orderData.total || 0);
-    }
-
-    // Si no es una orden individual, la borramos de la colección original
-    if (!orderId) {
-      batch.delete(doc.ref);
-    }
-  });
-
-  // 5. Actualizar las estadísticas del reporte
-  batch.update(targetReportRef, {
+  await targetReportRef.update({
     ordersCount: admin.firestore.FieldValue.increment(newOrdersCount),
     totalPaidAmount: admin.firestore.FieldValue.increment(newTotalPaidAmount),
   });
 
-  // 6. Ejecutar el lote de operaciones
-  await batch.commit();
-
-  if (orderId) {
-    return {
-      message: `Orden guardada exitosamente en el reporte '${reportName}'.`,
-    };
-  } else {
-    return {
-      message: `${newOrdersCount} órdenes han sido archivadas en '${reportName}' y la vista principal ha sido limpiada.`,
-    };
-  }
+  return {
+    message: `${newOrdersCount} órdenes han sido archivadas en '${reportName}' y la vista principal ha sido limpiada.`,
+  };
 });
 
 // ==================================================
@@ -400,7 +454,7 @@ exports.eliminarHistorial_v2 = onCall(async (request) => {
   const db = admin.firestore();
 
   // 1. Verificación de administrador
-  if (!context || context.token.role !== "administrador") {
+  if (!context || context.token.role !== APP_CONSTANTS.ROLES.ADMIN) {
     throw new functions.https.HttpsError(
         "permission-denied",
         "Solo los administradores pueden borrar el historial.",
@@ -408,28 +462,39 @@ exports.eliminarHistorial_v2 = onCall(async (request) => {
   }
 
   const adminId = context.uid;
-  const reportsRef = db.collection("users").doc(adminId).collection("reports");
+  const reportsRef = db.collection(APP_CONSTANTS.COLLECTIONS.USERS).doc(adminId).collection(APP_CONSTANTS.COLLECTIONS.REPORTS);
 
   try {
-    const snapshot = await reportsRef.get();
-    if (snapshot.empty) {
+    let lastReportDoc = null;
+    let deletedReportsCount = 0;
+
+    while (true) {
+      let reportQuery = reportsRef.orderBy("__name__").limit(APP_CONSTANTS.ARCHIVE_PAGE_SIZE);
+      if (lastReportDoc) {
+        reportQuery = reportQuery.startAfter(lastReportDoc);
+      }
+
+      const reportSnapshot = await reportQuery.get();
+      if (reportSnapshot.empty) {
+        break;
+      }
+
+      for (const reportDoc of reportSnapshot.docs) {
+        await deleteCollectionInBatches(reportDoc.ref.collection(APP_CONSTANTS.COLLECTIONS.ORDERS));
+        await reportDoc.ref.delete();
+        deletedReportsCount += 1;
+      }
+
+      if (reportSnapshot.size < APP_CONSTANTS.ARCHIVE_PAGE_SIZE) {
+        break;
+      }
+      lastReportDoc = reportSnapshot.docs[reportSnapshot.docs.length - 1];
+    }
+
+    if (deletedReportsCount === 0) {
       return {message: "No hay reportes archivados para eliminar."};
     }
 
-    // Usamos un lote (batch) para borrar eficientemente
-    const batch = db.batch();
-
-    for (const reportDoc of snapshot.docs) {
-      // Borrar subcolección de órdenes del reporte
-      const ordersSnapshot = await reportDoc.ref.collection("orders").get();
-      ordersSnapshot.docs.forEach((orderDoc) => {
-        batch.delete(orderDoc.ref);
-      });
-      // Borrar el reporte principal
-      batch.delete(reportDoc.ref);
-    }
-
-    await batch.commit();
     return {message: "El historial ha sido eliminado correctamente."};
   } catch (error) {
     console.error("Error al borrar historial:", error);
