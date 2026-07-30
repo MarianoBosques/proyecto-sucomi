@@ -18,8 +18,9 @@ service cloud.firestore {
       // La creación es manejada por la Cloud Function 'assignUserRole'.
       allow read: if (request.auth.uid == userId && hasRole('administrador')) || (request.auth.token.adminId == userId && (hasRole('mesero') || hasRole('chef')));
       allow update: if request.auth.uid == userId && hasRole('administrador');
-      // Un administrador puede crear su propio documento (la CF lo hace en su nombre).
-      allow create: if request.auth.uid == userId;
+      // Un administrador puede crear su propio documento. La creación se restringe
+      // a administradores porque los empleados no deben crear documentos raíz de usuario.
+      allow create: if request.auth.uid == userId && hasRole('administrador');
 
       // =======================================================
       // SUBCOLECCIÓN DE EMPLEADOS
@@ -86,7 +87,10 @@ service cloud.firestore {
     // Otras colecciones
     // ===========================================
     match /reports/{reportId} {
-      allow read, write: if hasRole('administrador');
+      // 💡 CORRECCIÓN: evitar permisos globales en la colección de reportes.
+      // Sólo el administrador propietario puede leer, actualizar o borrar su propio reporte.
+      allow create: if hasRole('administrador') && request.auth.uid == request.resource.data.adminId;
+      allow read, update, delete: if hasRole('administrador') && request.auth.uid == resource.data.adminId;
     }
   }
 }
