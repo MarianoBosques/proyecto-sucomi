@@ -2,7 +2,6 @@
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const {onUserCreated} = require("firebase-functions/v2/auth");
 const {onCall} = require("firebase-functions/v2/https");
 const {setGlobalOptions} = require("firebase-functions/v2");
 
@@ -59,10 +58,12 @@ setGlobalOptions({
 });
 
 // ====================================================================
-// FUNCIÓN 1: assignUserRole (GEN2)
+// FUNCIÓN 1: assignUserRole (GEN1)
 // ====================================================================
-exports.assignUserRole = onUserCreated(async (event) => {
-  const user = event.data;
+exports.assignUserRole = functions
+    .runWith({runtime: "nodejs18"})
+    .auth.user()
+    .onCreate(async (user) => {
   if (!user || !user.uid) {
     console.error(
         "Error: El objeto de usuario es nulo o indefinido, " +
