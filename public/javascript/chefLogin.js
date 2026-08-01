@@ -1,6 +1,6 @@
 // javascript/chefLogin.js
 
-import { loginUser, logoutUser } from './auth/authFunctions.js'; 
+import { loginUser, logoutUser, validateSessionForLogin } from './auth/authFunctions.js'; 
 import { auth } from './auth/firebaseConfig.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -43,14 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = true; // Deshabilitar para evitar múltiples clics
 
             try {
-                const inputEmail = usernameInput.value.trim().toLowerCase();
-                if (auth.currentUser && auth.currentUser.email && auth.currentUser.email.toLowerCase() !== inputEmail) {
-                    await logoutUser();
-                }
-
                 // 1. INICIAR SESIÓN usando la función centralizada.
                 const userLoginData = await loginUser(usernameInput.value, passwordInput.value);
                 const userRole = userLoginData.role; 
+
+                await validateSessionForLogin(auth, userLoginData);
                 
                 // 2. COMPROBACIÓN ESPECÍFICA DE ROL: Solo 'chef' puede ingresar.
                 if (userRole !== 'chef') {

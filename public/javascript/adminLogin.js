@@ -1,6 +1,6 @@
 // javascript/adminLogin.js
 
-import { loginUser, logoutUser } from './auth/authFunctions.js';
+import { loginUser, logoutUser, validateSessionForLogin } from './auth/authFunctions.js';
 import { auth } from './auth/firebaseConfig.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -43,17 +43,12 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = true; // Deshabilitar para evitar múltiples clics
 
             try {
-                const inputEmail = usernameInput.value.trim().toLowerCase();
-
-                // Si había un usuario previamente autenticado diferente, cerramos su sesión primero.
-                if (auth.currentUser && auth.currentUser.email && auth.currentUser.email.toLowerCase() !== inputEmail) {
-                    await logoutUser();
-                }
-
                 // Primero, inicia sesión con email/password usando authFunctions.js
                 // loginUser retornará la credencial de usuario
                 const userLoginData = await loginUser(usernameInput.value, passwordInput.value);
                 const userRole = userLoginData.role;
+
+                await validateSessionForLogin(auth, userLoginData);
 
                 // Ahora, verifica el rol obtenido de Firestore
                 if (userRole === 'administrador') {

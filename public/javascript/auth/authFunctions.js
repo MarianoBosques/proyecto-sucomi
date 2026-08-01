@@ -121,6 +121,43 @@ const registerUser = async (userData) => {
 };
 
 
+const getUserSessionContext = async (user) => {
+    if (!user) return null;
+
+    const tokenResult = await user.getIdTokenResult(true);
+    return {
+        uid: user.uid,
+        role: tokenResult.claims?.role || null,
+        adminId: tokenResult.claims?.adminId || null
+    };
+};
+
+export const validateSessionForLogin = async (auth, targetUserData) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser || !targetUserData) return;
+
+    const currentContext = await getUserSessionContext(currentUser);
+    const targetContext = {
+        uid: targetUserData.uid,
+        role: targetUserData.role,
+        adminId: targetUserData.adminId || null
+    };
+
+    if (!currentContext) return;
+    if (currentUser.uid === targetContext.uid) return;
+
+    const sameRole = currentContext.role === targetContext.role;
+    const sameRestaurant = Boolean(
+        currentContext.adminId &&
+        targetContext.adminId &&
+        currentContext.adminId === targetContext.adminId
+    );
+
+    if (!sameRole || !sameRestaurant) {
+        throw new Error('Ya existe una sesión activa para otra cuenta o restaurante. Cierra la sesión anterior antes de continuar.');
+    }
+};
+
 /**
  * Inicia sesión de un usuario, espera su rol y busca su documento.
  */
@@ -197,7 +234,8 @@ const loginUser = async (email, password) => {
             email: user.email,
             name: user.displayName || userDataFromFirestore.displayName || user.email,
             ...userDataFromFirestore,
-            role: userRole 
+            role: userRole,
+            adminId: userRole === 'administrador' ? user.uid : claims.adminId || null
         };
     } catch (error) {
         throw new Error(handleAuthError(error));
@@ -279,7 +317,8 @@ const googleLogin = async () => {
             email: user.email,
             name: user.displayName || userDataFromFirestore.displayName,
             ...userDataFromFirestore,
-            role: userRole
+            role: userRole,
+            adminId: userRole === 'administrador' ? user.uid : claims.adminId || null
         };
     } catch (error) {
         throw new Error(handleAuthError(error));

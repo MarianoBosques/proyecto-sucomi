@@ -25,6 +25,7 @@ export async function checkUserRole(auth, db, expectedRole, redirectLoginUrl = '
                 
                 let adminId = user.uid;
                 let role = claims.role;
+                const sessionUserData = JSON.parse(sessionStorage.getItem('user') || 'null');
 
                 if (expectedRole === 'administrador') {
                     if (role !== 'administrador') {
@@ -41,6 +42,11 @@ export async function checkUserRole(auth, db, expectedRole, redirectLoginUrl = '
                     if (role !== expectedRole || !claims.adminId) {
                         throw new Error(`Acceso denegado. Se requiere rol de '${expectedRole}' y vinculación de administrador.`);
                     }
+
+                    if (sessionUserData?.adminId && sessionUserData.adminId !== claims.adminId) {
+                        throw new Error('La sesión activa pertenece a otro restaurante. Cierra la sesión anterior para continuar.');
+                    }
+
                     adminId = claims.adminId;
                 }
 
